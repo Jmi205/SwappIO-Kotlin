@@ -20,7 +20,7 @@ import uniandes.isis3510.rewereable.ui.theme.GlassBackground
 
 @Composable
 fun ProfileScreen() {
-    // Usamos Box para el fondo líquido (aquí puedes poner tu gradiente luego)
+    // Usamos Box para el fondo líquido
     Box(
         modifier = Modifier
             .fillMaxSize()

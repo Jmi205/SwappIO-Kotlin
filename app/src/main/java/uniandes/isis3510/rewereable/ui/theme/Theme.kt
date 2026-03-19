@@ -15,7 +15,6 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
-// 1. Esquema de colores para Modo Oscuro
 private val DarkColorScheme = darkColorScheme(
     primary = Primary,
     background = BackgroundDark,
@@ -25,7 +24,6 @@ private val DarkColorScheme = darkColorScheme(
     onSurface = TextLight
 )
 
-// 2. Esquema de colores para Modo Claro
 private val LightColorScheme = lightColorScheme(
     primary = Primary,
     background = BackgroundLight,
@@ -35,7 +33,6 @@ private val LightColorScheme = lightColorScheme(
     onSurface = TextDark
 )
 
-// 3. La función principal del Tema
 @Composable
 fun ReWereableTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
@@ -46,7 +43,7 @@ fun ReWereableTheme(
         else -> LightColorScheme
     }
 
-    // Esto cambia el color de la barra de estado superior del teléfono (la hora, la batería)
+    // Esto cambia el color de la barra de estado superior del teléfono
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
@@ -58,7 +55,7 @@ fun ReWereableTheme(
 
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = Typography, // Conecta con Type.kt
+        typography = Typography,
         content = content
     )
 }

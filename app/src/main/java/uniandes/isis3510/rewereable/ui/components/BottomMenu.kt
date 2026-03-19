@@ -22,7 +22,6 @@ import uniandes.isis3510.rewereable.ui.theme.GlassBackground
 
 @Composable
 fun BottomMenu(navController: NavController, currentRoute: String?) {
-    // Contenedor flotante
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -42,7 +41,7 @@ fun BottomMenu(navController: NavController, currentRoute: String?) {
             MenuItem(Icons.Default.Home, "Home", currentRoute == Screen.Home.route) { navController.navigate(Screen.Home.route) }
             MenuItem(Icons.Default.Favorite, "Donate", currentRoute == Screen.Donate.route) { navController.navigate(Screen.Donate.route) }
 
-            // Botón central "Sell" (Sobresale un poco)
+            // Botón central "Sell"
             FloatingActionButton(
                 onClick = { navController.navigate(Screen.Sell.route) },
                 containerColor = Primary,
