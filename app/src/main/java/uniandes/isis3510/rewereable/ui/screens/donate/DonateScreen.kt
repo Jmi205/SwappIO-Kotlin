@@ -60,7 +60,8 @@ import uniandes.isis3510.rewereable.ui.theme.Primary
 
 @Composable
 fun DonateScreen(
-    viewModel: DonateViewModel
+    viewModel: DonateViewModel,
+    onNavigateToCharityDetails: (String) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -89,7 +90,8 @@ fun DonateScreen(
                 DonateContent(
                     state = state,
                     onSearch = viewModel::onSearchQueryChanged,
-                    onCategorySelected = viewModel::onCategorySelected
+                    onCategorySelected = viewModel::onCategorySelected,
+                    onCharityClick = onNavigateToCharityDetails
                 )
             }
         }
@@ -100,7 +102,8 @@ fun DonateScreen(
 private fun DonateContent(
     state: DonateUiState.Success,
     onSearch: (String) -> Unit,
-    onCategorySelected: (String) -> Unit
+    onCategorySelected: (String) -> Unit,
+    onCharityClick: (String) -> Unit
 ) {
     val topPadding = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
     val bottomPadding = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
@@ -139,8 +142,11 @@ private fun DonateContent(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        state.featuredCharity?.let {
-            FeaturedCharityCard(it)
+        state.featuredCharity?.let { charity ->
+            FeaturedCharityCard(
+                charity = charity,
+                onClick = { onCharityClick(charity.id) }
+            )
         }
 
         Spacer(modifier = Modifier.height(18.dp))
@@ -150,7 +156,10 @@ private fun DonateContent(
         Spacer(modifier = Modifier.height(10.dp))
 
         state.filteredCharities.forEach { charity ->
-            CharityCard(charity = charity)
+            CharityCard(
+                charity = charity,
+                onClick = { onCharityClick(charity.id) }
+            )
             Spacer(modifier = Modifier.height(12.dp))
         }
     }
@@ -306,11 +315,15 @@ private fun SectionLabel(text: String) {
 }
 
 @Composable
-private fun FeaturedCharityCard(charity: Charity) {
+private fun FeaturedCharityCard(
+    charity: Charity,
+    onClick: () -> Unit
+) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(215.dp),
+            .height(215.dp)
+            .clickable { onClick() },
         shape = RoundedCornerShape(22.dp),
         colors = CardDefaults.cardColors(containerColor = Color.Transparent)
     ) {
@@ -419,7 +432,7 @@ private fun FeaturedCharityCard(charity: Charity) {
                     }
 
                     Button(
-                        onClick = { },
+                        onClick = { onClick() },
                         shape = RoundedCornerShape(14.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color.White,
@@ -499,12 +512,17 @@ private fun FeaturedCardFakeImage() {
 }
 
 @Composable
-private fun CharityCard(charity: Charity) {
+private fun CharityCard(
+    charity: Charity,
+    onClick: () -> Unit
+) {
     val accentColor = charityAccentColor(charity)
     val icon = charityIcon(charity)
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() },
         shape = RoundedCornerShape(18.dp),
         colors = CardDefaults.cardColors(
             containerColor = Color.White.copy(alpha = 0.58f)
