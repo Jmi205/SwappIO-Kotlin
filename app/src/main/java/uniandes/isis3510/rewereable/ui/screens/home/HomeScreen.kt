@@ -1,6 +1,8 @@
 package uniandes.isis3510.rewereable.ui.screens.home
 
+import android.telephony.ims.SipDetails
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -23,9 +25,14 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import uniandes.isis3510.rewereable.domain.model.Product
+import androidx.compose.material3.TextFieldDefaults
 
 @Composable
-fun HomeScreen(viewModel: HomeViewModel) {
+fun HomeScreen(
+    viewModel: HomeViewModel,
+    onNavigateToDetails: (String) -> Unit
+) {
+
     val uiState by viewModel.uiState.collectAsState()
 
     // Fondo líquido / gradiente
@@ -51,7 +58,12 @@ fun HomeScreen(viewModel: HomeViewModel) {
             }
             is HomeUiState.Success -> {
                 val data = uiState as HomeUiState.Success
-                HomeContent(categories = data.categories, products = data.products)
+                HomeContent(
+                    state = data,
+                    onSearch = viewModel::onSearchQueryChanged,
+                    onToggleFavorite = viewModel::toggleFavorite,
+                    onProductClick = onNavigateToDetails,
+                )
             }
         }
     }
@@ -59,7 +71,12 @@ fun HomeScreen(viewModel: HomeViewModel) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun HomeContent(categories: List<String>, products: List<Product>) {
+private fun HomeContent(
+    state: HomeUiState.Success,
+    onSearch: (String) -> Unit,
+    onToggleFavorite: (String) ->Unit,
+    onProductClick: (String) -> Unit,
+    ) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -84,11 +101,20 @@ private fun HomeContent(categories: List<String>, products: List<Product>) {
 
         // Search Bar (Glass effect)
         TextField(
-            value = "",
-            onValueChange = {},
+            value = state.searchQuery,
+            onValueChange = onSearch,
             placeholder = { Text("Search for clothes, brands...") },
             leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+            trailingIcon = { Icon(Icons.Default.Tune, contentDescription = "Filter") },
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = Color.White.copy(alpha = 0.4f),
+                unfocusedContainerColor = Color.White.copy(alpha = 0.4f),
+                disabledContainerColor = Color.White.copy(alpha = 0.4f),
 
+                focusedIndicatorColor = Color.Transparent,
+                unfocusedIndicatorColor = Color.Transparent,
+                disabledIndicatorColor = Color.Transparent
+            ),
             shape = RoundedCornerShape(16.dp),
             modifier = Modifier.fillMaxWidth()
         )
@@ -102,7 +128,7 @@ private fun HomeContent(categories: List<String>, products: List<Product>) {
                 .horizontalScroll(rememberScrollState()),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            categories.forEachIndexed { index, category ->
+            state.categories.forEachIndexed { index, category ->
                 val isSelected = index == 0
                 Box(
                     modifier = Modifier
@@ -141,21 +167,32 @@ private fun HomeContent(categories: List<String>, products: List<Product>) {
             verticalArrangement = Arrangement.spacedBy(12.dp),
             contentPadding = PaddingValues(bottom = 100.dp) // Espacio para el Bottom Navigation
         ) {
-            items(products) { product ->
-                ProductCard(product)
+            items(state.products) { product ->
+                ProductCard(
+                    product = product,
+                    isFavorite = state.favoriteIds.contains(product.id),
+                    onFavoriteClick = { onToggleFavorite(product.id)},
+                    onClick = { onProductClick(product.id)}
+                )
             }
         }
     }
 }
 
 @Composable
-fun ProductCard(product: Product) {
+fun ProductCard(
+    product: Product,
+    isFavorite: Boolean,
+    onFavoriteClick: () -> Unit,
+    onClick: () -> Unit
+) {
     // Glass Card
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
-            .background(Color.White.copy(alpha = 0.4f)) // Glass Effect
+            .background(Color.White.copy(alpha = 0.4f))
+            .clickable { onClick() }
     ) {
         // Área de la imagen
         Box(
@@ -183,10 +220,15 @@ fun ProductCard(product: Product) {
                     .padding(8.dp)
                     .size(32.dp)
                     .clip(CircleShape)
-                    .background(Color.White.copy(alpha = 0.7f)),
+                    .background(Color.White.copy(alpha = 0.7f))
+                    .clickable { onFavoriteClick() },
                 contentAlignment = Alignment.Center
             ) {
-                Icon(Icons.Default.FavoriteBorder, contentDescription = "Fav", modifier = Modifier.size(18.dp))
+                Icon(
+                    imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                    contentDescription = "Fav",
+                    modifier = Modifier.size(18.dp),
+                    tint = if (isFavorite) Color.Red else Color.Black)
             }
         }
 

@@ -82,7 +82,20 @@ class ProductRepositoryImpl : ProductRepository {
     }
 
     override suspend fun getProductById(productId: String): Result<Product> {
-        TODO("Not yet implemented")
+        return Result.success(Product(
+            id = "4",
+            name = "Light Wash Denim Jacket",
+            description = "Chaqueta de jean clara.",
+            price = 85000.0,
+            size = "S",
+            brand = "Levi's",
+            location = "Bogotá",
+            images = listOf("url_jean"),
+            stateTags = listOf("Vintage"),
+            styleTags = listOf("Denim", "Casual"),
+            status = ProductStatus.AVAILABLE,
+            ownerId = "Laura B."
+        ))
     }
 
     override suspend fun createProductListing(product: Product): Result<Boolean> {

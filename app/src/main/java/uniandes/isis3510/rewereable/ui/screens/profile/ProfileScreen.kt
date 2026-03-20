@@ -22,8 +22,6 @@ import uniandes.isis3510.rewereable.ui.theme.Primary
 import uniandes.isis3510.rewereable.ui.theme.GlassBackground
 @Composable
 fun ProfileScreen(
-    // Inyectamos el ViewModel en la vista
-    // viewModel: ProfileViewModel = hiltViewModel() <-- Usa esto si tienes Hilt configurado
     viewModel: ProfileViewModel
 ) {
     // 1. Nos "suscribimos" al estado del ViewModel
