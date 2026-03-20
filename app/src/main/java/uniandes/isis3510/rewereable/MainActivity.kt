@@ -11,15 +11,21 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import uniandes.isis3510.rewereable.domain.repository.UserRepositoryImpl
 import uniandes.isis3510.rewereable.ui.components.BottomMenu
 import uniandes.isis3510.rewereable.ui.navigation.Screen
 import uniandes.isis3510.rewereable.ui.screens.profile.ProfileScreen
+import uniandes.isis3510.rewereable.ui.screens.profile.ProfileViewModel
 import uniandes.isis3510.rewereable.ui.theme.ReWereableTheme
 
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val userRepository = UserRepositoryImpl()
+        val profileViewModel = ProfileViewModel(userRepository)
+
         setContent {
             ReWereableTheme() {
                 val navController = rememberNavController()
@@ -43,7 +49,7 @@ class MainActivity : ComponentActivity() {
                         composable(Screen.Donate.route) { /* DonateScreen() */ }
                         composable(Screen.Sell.route) { /* SellScreen() */ }
                         composable(Screen.Inbox.route) { /* InboxScreen() */ }
-                        composable(Screen.Profile.route) { ProfileScreen() }
+                        composable(Screen.Profile.route) { ProfileScreen(viewModel = profileViewModel) }
                     }
                 }
             }

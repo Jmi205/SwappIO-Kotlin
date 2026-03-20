@@ -8,7 +8,7 @@ data class User(
     val balance: Double,
     val email: String,
     val number: String,
-    val memberSince: String,
+    val memberSince: Long,
     val location: String,
 
     val profilePictureUrl: String? = null,
