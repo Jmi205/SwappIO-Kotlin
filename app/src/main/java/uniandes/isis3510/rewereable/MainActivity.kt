@@ -24,6 +24,9 @@ import uniandes.isis3510.rewereable.ui.screens.product.ProductDetailViewModel
 import uniandes.isis3510.rewereable.ui.screens.profile.ProfileScreen
 import uniandes.isis3510.rewereable.ui.screens.profile.ProfileViewModel
 import uniandes.isis3510.rewereable.ui.theme.ReWereableTheme
+import uniandes.isis3510.rewereable.domain.repository.CharityRepositoryImpl
+import uniandes.isis3510.rewereable.ui.screens.donate.DonateScreen
+import uniandes.isis3510.rewereable.ui.screens.donate.DonateViewModel
 
 
 class MainActivity : ComponentActivity() {
@@ -35,6 +38,9 @@ class MainActivity : ComponentActivity() {
 
         val productRepository = ProductRepositoryImpl()
         val homeViewModel = HomeViewModel(productRepository, userRepository)
+
+        val charityRepository = CharityRepositoryImpl()
+        val donateViewModel = DonateViewModel(charityRepository)
 
         setContent {
             ReWereableTheme() {
@@ -60,7 +66,7 @@ class MainActivity : ComponentActivity() {
                             HomeScreen(
                                 viewModel =  homeViewModel,
                                 onNavigateToDetails = { productId -> navController.navigate("details/{productId}")}) }
-                        composable(Screen.Donate.route) { /* DonateScreen() */ }
+                        composable(Screen.Donate.route) { DonateScreen(viewModel = donateViewModel) }
                         composable(Screen.Sell.route) { /* SellScreen() */ }
                         composable(Screen.Inbox.route) { /* InboxScreen() */ }
                         composable(Screen.Profile.route) { ProfileScreen(viewModel = profileViewModel) }
