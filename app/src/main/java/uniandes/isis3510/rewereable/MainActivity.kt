@@ -67,7 +67,7 @@ class MainActivity : ComponentActivity() {
                             HomeScreen(
                                 viewModel = homeViewModel,
                                 onNavigateToDetails = { productId ->
-                                    navController.navigate("details/$productId")
+                                    navController.navigate(Screen.Product.route)
                                 }
                             )
                         }

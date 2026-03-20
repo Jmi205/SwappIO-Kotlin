@@ -17,9 +17,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.ColorPainter
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import uniandes.isis3510.rewereable.domain.model.Product
 
 @Composable
@@ -49,6 +53,9 @@ fun ProductDetailScreen(
 private fun ProductDetailContent(product: Product, onBackClick: () -> Unit) {
     val scrollState = rememberScrollState()
 
+    val configuration = LocalConfiguration.current
+    val screenHeight = configuration.screenHeightDp.dp
+
     // Modificador reutilizable para el efecto "Liquid Glass" de tu CSS
     val glassModifier = Modifier
         .clip(RoundedCornerShape(32.dp))
@@ -66,10 +73,18 @@ private fun ProductDetailContent(product: Product, onBackClick: () -> Unit) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .fillMaxHeight(0.55f) // 55vh equivalente
+                    .height(screenHeight * 0.55f)
                     .clip(RoundedCornerShape(bottomStart = 40.dp, bottomEnd = 40.dp))
-                    .background(Color.DarkGray) // Aquí iría la imagen real
-            )
+            ){
+                AsyncImage(
+                    model = product.images.getOrNull(0),
+                    contentDescription = product.name,
+                    modifier = Modifier.fillMaxSize(), // Ahora sí llenará el 55% de la pantalla
+                    contentScale = ContentScale.Crop,
+                    placeholder = ColorPainter(Color.LightGray),
+                    error = ColorPainter(Color.LightGray)
+                )
+            }
 
             // 2. Tarjeta principal superpuesta (-mt-16)
             Column(

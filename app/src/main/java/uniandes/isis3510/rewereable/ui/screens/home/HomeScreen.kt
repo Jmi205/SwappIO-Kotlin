@@ -26,6 +26,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import uniandes.isis3510.rewereable.domain.model.Product
 import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.ui.graphics.painter.ColorPainter
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.AsyncImage
 
 @Composable
 fun HomeScreen(
@@ -199,8 +202,16 @@ fun ProductCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .aspectRatio(3f / 4f)
-                .background(Color.LightGray) // Aquí iría Coil/Glide para la imagen real
         ) {
+            AsyncImage(
+                model = product.images.getOrNull(0), // Safely gets the first URL
+                contentDescription = product.name,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop, // This makes it look professional (fills the space)
+                // Optional: show a grey background while loading
+                placeholder = ColorPainter(Color.LightGray),
+                error = ColorPainter(Color.LightGray)
+            )
             // Precio flotante (Glass Tag)
             Box(
                 modifier = Modifier
