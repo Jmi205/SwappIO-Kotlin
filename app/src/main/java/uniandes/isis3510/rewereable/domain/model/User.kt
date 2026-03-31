@@ -14,7 +14,7 @@ data class User(
     val profilePictureUrl: String? = null,
 
 
-    val purchases: List<Product> = emptyList(),
-    val listings: List<Product> = emptyList(),
-    val favorites: List<Product> = emptyList()
+    val purchases: List<String> = emptyList(),
+    val listings: List<String> = emptyList(),
+    val favorites: List<String> = emptyList()
 )

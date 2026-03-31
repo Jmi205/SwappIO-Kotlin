@@ -1,80 +1,38 @@
 package uniandes.isis3510.rewereable.domain.repository
 
-import kotlinx.coroutines.delay
+import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.tasks.await
 import uniandes.isis3510.rewereable.domain.model.Product
 import uniandes.isis3510.rewereable.domain.model.ProductStatus
+import uniandes.isis3510.rewereable.domain.repository.ProductRepository
 
 class ProductRepositoryImpl : ProductRepository {
 
-    override suspend fun getCategories(): Result<List<String>> {
+    private val firestore = FirebaseFirestore.getInstance()
+
+    override suspend fun getTags(): Result<List<String>> {
         return Result.success(
-            listOf("Trending", "Dresses", "Shoes", "Jackets", "Accessories", "Pants")
+            listOf("All", "Trending", "Dresses", "Shoes", "Jackets", "Accessories", "Pants")
         )
     }
 
     override suspend fun getTrendingProducts(): Result<List<Product>> {
-        delay(800) // Simulamos tiempo de carga de internet
+        return try {
 
-        return Result.success(
-            listOf(
-                Product(
-                    id = "1",
-                    name = "Vintage Floral Summer Dress",
-                    description = "Hermoso vestido de verano.",
-                    price = 45000.0,
-                    size = "M",
-                    brand = "Zara",
-                    location = "Bogotá",
-                    images = listOf("https://media.istockphoto.com/id/163208487/photo/male-coat-isolated-on-the-white.jpg?s=612x612&w=0&k=20&c=3Sdq5xnVS2jOYPNXI6JLwAumzyelcP_VgKVW0MVUhwo="),
-                    stateTags = listOf("Casi nuevo"),
-                    styleTags = listOf("Floral", "Summer"),
-                    status = ProductStatus.AVAILABLE,
-                    ownerId = "Ana María" // En un caso real, esto sería un ID que luego busca el nombre
-                ),
-                Product(
-                    id = "2",
-                    name = "Classic Leather Biker Jacket",
-                    description = "Chaqueta de cuero genuino.",
-                    price = 120000.0,
-                    size = "L",
-                    brand = "Pull & Bear",
-                    location = "Medellín",
-                    images = listOf("https://media.istockphoto.com/id/163208487/photo/male-coat-isolated-on-the-white.jpg?s=612x612&w=0&k=20&c=3Sdq5xnVS2jOYPNXI6JLwAumzyelcP_VgKVW0MVUhwo="),
-                    stateTags = listOf("Buen estado"),
-                    styleTags = listOf("Leather", "Classic"),
-                    status = ProductStatus.AVAILABLE,
-                    ownerId = "Carlos R."
-                ),
-                Product(
-                    id = "3",
-                    name = "Nike Air Max Red Limited",
-                    description = "Tenis edición limitada.",
-                    price = 180000.0,
-                    size = "42",
-                    brand = "Nike",
-                    location = "Cali",
-                    images = listOf("https://media.istockphoto.com/id/163208487/photo/male-coat-isolated-on-the-white.jpg?s=612x612&w=0&k=20&c=3Sdq5xnVS2jOYPNXI6JLwAumzyelcP_VgKVW0MVUhwo="),
-                    stateTags = listOf("Como nuevo"),
-                    styleTags = listOf("Sport", "Sneakers"),
-                    status = ProductStatus.AVAILABLE,
-                    ownerId = "Valentina"
-                ),
-                Product(
-                    id = "4",
-                    name = "Light Wash Denim Jacket",
-                    description = "Chaqueta de jean clara.",
-                    price = 85000.0,
-                    size = "S",
-                    brand = "Levi's",
-                    location = "Bogotá",
-                    images = listOf("https://media.istockphoto.com/id/163208487/photo/male-coat-isolated-on-the-white.jpg?s=612x612&w=0&k=20&c=3Sdq5xnVS2jOYPNXI6JLwAumzyelcP_VgKVW0MVUhwo="),
-                    stateTags = listOf("Vintage"),
-                    styleTags = listOf("Denim", "Casual"),
-                    status = ProductStatus.AVAILABLE,
-                    ownerId = "Laura B."
-                )
-            )
-        )
+            val snapshot = firestore.collection("products")
+                .whereEqualTo("status", ProductStatus.AVAILABLE.name)
+                .limit(20) // Traemos solo los 20 más recientes para no saturar la red
+                .get()
+                .await()
+
+            val products = snapshot.documents.mapNotNull { document ->
+                mapDocumentToProduct(document)
+            }
+
+            Result.success(products)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 
     override suspend fun getAvailableProducts(): Result<List<Product>> {
@@ -82,24 +40,31 @@ class ProductRepositoryImpl : ProductRepository {
     }
 
     override suspend fun getProductById(productId: String): Result<Product> {
-        return Result.success(Product(
-            id = "4",
-            name = "Light Wash Denim Jacket",
-            description = "Chaqueta de jean clara.",
-            price = 85000.0,
-            size = "S",
-            brand = "Levi's",
-            location = "Bogotá",
-            images = listOf("https://media.istockphoto.com/id/163208487/photo/male-coat-isolated-on-the-white.jpg?s=612x612&w=0&k=20&c=3Sdq5xnVS2jOYPNXI6JLwAumzyelcP_VgKVW0MVUhwo="),
-            stateTags = listOf("Vintage"),
-            styleTags = listOf("Denim", "Casual"),
-            status = ProductStatus.AVAILABLE,
-            ownerId = "Laura B."
-        ))
+        return try {
+            val document = firestore.collection("products").document(productId).get().await()
+
+            if (document.exists()) {
+                val product = mapDocumentToProduct(document)
+                if (product != null) {
+                    Result.success(product)
+                } else {
+                    Result.failure(Exception("Error al mapear el producto"))
+                }
+            } else {
+                Result.failure(Exception("El producto no existe"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 
     override suspend fun createProductListing(product: Product): Result<Boolean> {
-        TODO("Not yet implemented")
+        return try {
+            firestore.collection("products").document(product.id).set(product).await()
+            Result.success(true)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 
     override suspend fun markProductAsDonated(
@@ -113,4 +78,33 @@ class ProductRepositoryImpl : ProductRepository {
         TODO("Not yet implemented")
     }
 
+    private fun mapDocumentToProduct(document: com.google.firebase.firestore.DocumentSnapshot): Product? {
+        return try {
+            // Firebase guarda los Enums como Strings, los convertimos de vuelta:
+            val statusString = document.getString("status") ?: ProductStatus.AVAILABLE.name
+            val statusEnum = try {
+                ProductStatus.valueOf(statusString)
+            } catch (e: Exception) {
+                ProductStatus.AVAILABLE
+            }
+
+            Product(
+                id = document.id,
+                name = document.getString("name") ?: "",
+                description = document.getString("description") ?: "",
+                price = document.getDouble("price") ?: 0.0,
+                discount = document.getDouble("discount") ?: 0.0,
+                size = document.getString("size") ?: "U",
+                brand = document.getString("brand"),
+                location = document.getString("location") ?: "",
+                images = document.get("images") as? List<String> ?: emptyList(),
+                stateTags = document.get("stateTags") as? List<String> ?: emptyList(),
+                styleTags = document.get("styleTags") as? List<String> ?: emptyList(),
+                status = statusEnum,
+                ownerId = document.getString("ownerId") ?: ""
+            )
+        } catch (e: Exception) {
+            null
+        }
+    }
 }

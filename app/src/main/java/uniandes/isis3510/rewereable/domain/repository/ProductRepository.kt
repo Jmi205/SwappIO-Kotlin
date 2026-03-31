@@ -10,5 +10,5 @@ interface ProductRepository {
     suspend fun markProductAsDonated(productId: String, dropOffPointId: String): Result<Boolean>
     suspend fun getProductsByStyle(tag: String): Result<List<Product>>
     suspend fun getTrendingProducts(): Result<List<Product>>
-    suspend fun getCategories(): Result<List<String>>
+    suspend fun getTags(): Result<List<String>>
 }

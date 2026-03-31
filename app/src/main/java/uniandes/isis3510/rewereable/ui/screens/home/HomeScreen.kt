@@ -1,6 +1,5 @@
 package uniandes.isis3510.rewereable.ui.screens.home
 
-import android.telephony.ims.SipDetails
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -25,7 +24,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import uniandes.isis3510.rewereable.domain.model.Product
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.layout.ContentScale
 import coil.compose.AsyncImage
@@ -35,10 +33,8 @@ fun HomeScreen(
     viewModel: HomeViewModel,
     onNavigateToDetails: (String) -> Unit
 ) {
-
     val uiState by viewModel.uiState.collectAsState()
 
-    // Fondo líquido / gradiente
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -66,6 +62,7 @@ fun HomeScreen(
                     onSearch = viewModel::onSearchQueryChanged,
                     onToggleFavorite = viewModel::toggleFavorite,
                     onProductClick = onNavigateToDetails,
+                    onTagSelected = viewModel::onTagSelected
                 )
             }
         }
@@ -77,9 +74,10 @@ fun HomeScreen(
 private fun HomeContent(
     state: HomeUiState.Success,
     onSearch: (String) -> Unit,
-    onToggleFavorite: (String) ->Unit,
+    onToggleFavorite: (String) -> Unit,
     onProductClick: (String) -> Unit,
-    ) {
+    onTagSelected: (String) -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -96,7 +94,7 @@ private fun HomeContent(
             IconButton(onClick = { /* Menú o atrás */ }) {
                 Icon(Icons.Default.ArrowBack, contentDescription = "Back")
             }
-            Text("ReWearable - Home", fontWeight = FontWeight.Bold, fontSize = 20.sp)
+            Text("SwappIO - Home", fontWeight = FontWeight.Bold, fontSize = 20.sp)
             IconButton(onClick = { /* Notificaciones */ }) {
                 Icon(Icons.Default.Notifications, contentDescription = "Notifications")
             }
@@ -113,7 +111,6 @@ private fun HomeContent(
                 focusedContainerColor = Color.White.copy(alpha = 0.4f),
                 unfocusedContainerColor = Color.White.copy(alpha = 0.4f),
                 disabledContainerColor = Color.White.copy(alpha = 0.4f),
-
                 focusedIndicatorColor = Color.Transparent,
                 unfocusedIndicatorColor = Color.Transparent,
                 disabledIndicatorColor = Color.Transparent
@@ -131,12 +128,13 @@ private fun HomeContent(
                 .horizontalScroll(rememberScrollState()),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            state.categories.forEachIndexed { index, category ->
-                val isSelected = index == 0
+            state.tag.forEach { category ->
+                val isSelected = category == state.selectedTag
                 Box(
                     modifier = Modifier
                         .clip(CircleShape)
                         .background(if (isSelected) Color(0xFF077288) else Color.White.copy(alpha = 0.3f))
+                        .clickable { onTagSelected(category) }
                         .padding(horizontal = 20.dp, vertical = 10.dp)
                 ) {
                     Text(
@@ -157,8 +155,7 @@ private fun HomeContent(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("Trending Now", fontSize = 20.sp, fontWeight = FontWeight.Bold)
-            Text("See All", fontSize = 14.sp, color = Color(0xFF077288), fontWeight = FontWeight.Bold)
+            Text("Products Now", fontSize = 20.sp, fontWeight = FontWeight.Bold)
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -168,14 +165,14 @@ private fun HomeContent(
             columns = GridCells.Fixed(2),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
-            contentPadding = PaddingValues(bottom = 100.dp) // Espacio para el Bottom Navigation
+            contentPadding = PaddingValues(bottom = 100.dp)
         ) {
-            items(state.products) { product ->
+            items(state.filteredProducts) { product ->
                 ProductCard(
                     product = product,
                     isFavorite = state.favoriteIds.contains(product.id),
-                    onFavoriteClick = { onToggleFavorite(product.id)},
-                    onClick = { onProductClick(product.id)}
+                    onFavoriteClick = { onToggleFavorite(product.id) },
+                    onClick = { onProductClick(product.id) }
                 )
             }
         }
@@ -204,11 +201,10 @@ fun ProductCard(
                 .aspectRatio(3f / 4f)
         ) {
             AsyncImage(
-                model = product.images.getOrNull(0), // Safely gets the first URL
+                model = product.images.getOrNull(0),
                 contentDescription = product.name,
                 modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop, // This makes it look professional (fills the space)
-                // Optional: show a grey background while loading
+                contentScale = ContentScale.Crop,
                 placeholder = ColorPainter(Color.LightGray),
                 error = ColorPainter(Color.LightGray)
             )

@@ -1,6 +1,7 @@
 package uniandes.isis3510.rewereable
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.padding
@@ -12,11 +13,19 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.google.firebase.Firebase
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.auth
+import com.google.firebase.firestore.FirebaseFirestore
+import uniandes.isis3510.rewereable.domain.repository.AuthRepositoryImpl
 import uniandes.isis3510.rewereable.domain.repository.CharityRepositoryImpl
 import uniandes.isis3510.rewereable.domain.repository.ProductRepositoryImpl
 import uniandes.isis3510.rewereable.domain.repository.UserRepositoryImpl
 import uniandes.isis3510.rewereable.ui.components.BottomMenu
 import uniandes.isis3510.rewereable.ui.navigation.Screen
+import uniandes.isis3510.rewereable.ui.screens.auth.AuthViewModel
+import uniandes.isis3510.rewereable.ui.screens.auth.LoginScreen
+import uniandes.isis3510.rewereable.ui.screens.auth.RegisterScreen
 import uniandes.isis3510.rewereable.ui.screens.charity.CharityDetailScreen
 import uniandes.isis3510.rewereable.ui.screens.charity.CharityDetailViewModel
 import uniandes.isis3510.rewereable.ui.screens.donate.DonateScreen
@@ -27,15 +36,18 @@ import uniandes.isis3510.rewereable.ui.screens.product.ProductDetailScreen
 import uniandes.isis3510.rewereable.ui.screens.product.ProductDetailViewModel
 import uniandes.isis3510.rewereable.ui.screens.profile.ProfileScreen
 import uniandes.isis3510.rewereable.ui.screens.profile.ProfileViewModel
-import uniandes.isis3510.rewereable.ui.theme.ReWereableTheme
+import uniandes.isis3510.rewereable.ui.theme.SwappIOTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val userRepository = UserRepositoryImpl()
-        val profileViewModel = ProfileViewModel(userRepository)
+        val auth = FirebaseAuth.getInstance()
 
+        val authRepository = AuthRepositoryImpl(auth, FirebaseFirestore.getInstance())
+        val authViewModel = AuthViewModel(authRepository)
+
+        val userRepository = UserRepositoryImpl()
         val productRepository = ProductRepositoryImpl()
         val homeViewModel = HomeViewModel(productRepository, userRepository)
 
@@ -43,31 +55,89 @@ class MainActivity : ComponentActivity() {
         val donateViewModel = DonateViewModel(charityRepository)
 
         setContent {
-            ReWereableTheme {
+            SwappIOTheme {
                 val navController = rememberNavController()
 
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val currentRoute = navBackStackEntry?.destination?.route
 
+                val startDestination = if (auth.currentUser != null) {
+                    Screen.Home.route
+                } else {
+                    Screen.Login.route
+                }
+
+                val showBottomBar = currentRoute != Screen.Login.route && currentRoute != Screen.Register.route
+
+                Log.d("MainActivity", "Current User: ${auth.currentUser?.uid}")
+                Log.d("Main Activity", "Start Destination: $startDestination")
+
                 Scaffold(
                     bottomBar = {
-                        BottomMenu(
-                            navController = navController,
-                            currentRoute = currentRoute
-                        )
+                        // Solo mostramos el menú si showBottomBar es true
+                        if (showBottomBar) {
+                            BottomMenu(
+                                navController = navController,
+                                currentRoute = currentRoute
+                            )
+                        }
                     }
                 ) { innerPadding ->
 
                     NavHost(
                         navController = navController,
-                        startDestination = Screen.Home.route,
+                        startDestination = startDestination,
                         modifier = Modifier.padding(innerPadding)
                     ) {
+                        composable(Screen.Login.route) {
+                             LoginScreen(
+                                 viewModel = authViewModel,
+                                 onNavigateToHome = {
+                                     // PopUpTo limpia el historial para que no puedan volver al login con el botón 'Atrás'
+                                     navController.navigate(Screen.Home.route) {
+                                         popUpTo("login") { inclusive = true }
+                                     }
+                                 },
+                                 onNavigateToRegister = { navController.navigate("register") }
+                             )
+                        }
+
+                        composable(Screen.Register.route) {
+                             RegisterScreen(
+                                 viewModel = authViewModel,
+                                 onNavigateToHome = {
+                                     navController.navigate(Screen.Home.route) {
+                                         popUpTo("login") { inclusive = true }
+                                     }
+                                 },
+                                 onNavigateToLogin = { navController.popBackStack() }
+                             )
+                        }
                         composable(Screen.Home.route) {
                             HomeScreen(
                                 viewModel = homeViewModel,
                                 onNavigateToDetails = { productId ->
-                                    navController.navigate(Screen.Product.route)
+                                    val routeConIdReal = Screen.Product.route.replace("{productId}", productId)
+                                    navController.navigate(routeConIdReal)
+                                }
+                            )
+                        }
+
+                        composable(Screen.Profile.route) {
+                            val profileViewModel: ProfileViewModel = viewModel(
+                                factory = ProfileViewModel.provideFactory(userRepository, authRepository)
+                            )
+
+                            ProfileScreen(
+                                viewModel = profileViewModel,
+                                onNavigateToPurchases = { navController.navigate(Screen.Purchases.route) },
+                                onNavigateToListings = { navController.navigate(Screen.Listings.route) },
+                                onNavigateToFavorites = { navController.navigate(Screen.Favorites.route) },
+                                onLogout = {
+                                    navController.navigate("login") {
+                                        // Borra todo el historial de navegación para que no puedan volver atrás
+                                        popUpTo(0) { inclusive = true }
+                                    }
                                 }
                             )
                         }
@@ -89,17 +159,16 @@ class MainActivity : ComponentActivity() {
                             /* InboxScreen() */
                         }
 
-                        composable(Screen.Profile.route) {
-                            ProfileScreen(viewModel = profileViewModel)
-                        }
+
 
                         composable(Screen.Product.route) { backStackEntry ->
                             val productId = backStackEntry.arguments?.getString("productId") ?: ""
 
                             val detailViewModel: ProductDetailViewModel = viewModel(
                                 factory = ProductDetailViewModel.provideFactory(
-                                    productRepository,
-                                    productId
+                                    productRepository = productRepository,
+                                    userRepository = userRepository,
+                                    productId = productId
                                 )
                             )
 

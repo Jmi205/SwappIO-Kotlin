@@ -34,7 +34,7 @@ private val LightColorScheme = lightColorScheme(
 )
 
 @Composable
-fun ReWereableTheme(
+fun SwappIOTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit
 ) {
@@ -43,7 +43,6 @@ fun ReWereableTheme(
         else -> LightColorScheme
     }
 
-    // Esto cambia el color de la barra de estado superior del teléfono
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {

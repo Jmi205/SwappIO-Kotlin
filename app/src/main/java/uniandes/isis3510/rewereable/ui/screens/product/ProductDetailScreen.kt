@@ -1,9 +1,11 @@
 package uniandes.isis3510.rewereable.ui.screens.product
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -15,7 +17,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.layout.ContentScale
@@ -25,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import uniandes.isis3510.rewereable.domain.model.Product
+import uniandes.isis3510.rewereable.domain.model.User
 
 @Composable
 fun ProductDetailScreen(
@@ -36,70 +38,93 @@ fun ProductDetailScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF5F8F8)) // background-light de tu CSS
+            .background(Color(0xFFF5F8F8))
     ) {
         when (uiState) {
             is DetailUiState.Loading -> CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-            is DetailUiState.Error -> Text("Error", modifier = Modifier.align(Alignment.Center))
+            is DetailUiState.Error -> Text("Error xd xd", modifier = Modifier.align(Alignment.Center))
             is DetailUiState.Success -> {
-                val product = (uiState as DetailUiState.Success).product
-                ProductDetailContent(product, onBackClick)
+                val data = uiState as DetailUiState.Success
+                ProductDetailContent(data.product, data.owner, onBackClick)
             }
         }
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun ProductDetailContent(product: Product, onBackClick: () -> Unit) {
+private fun ProductDetailContent(product: Product, owner: User, onBackClick: () -> Unit) {
     val scrollState = rememberScrollState()
-
     val configuration = LocalConfiguration.current
     val screenHeight = configuration.screenHeightDp.dp
 
-    // Modificador reutilizable para el efecto "Liquid Glass" de tu CSS
     val glassModifier = Modifier
         .clip(RoundedCornerShape(32.dp))
         .background(Color.White.copy(alpha = 0.65f))
         .border(1.dp, Color.White.copy(alpha = 0.5f), RoundedCornerShape(32.dp))
+
+    val imageCount = if (product.images.isNotEmpty()) product.images.size else 1
+    val pagerState = rememberPagerState(pageCount = { imageCount })
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(scrollState)
-                .padding(bottom = 100.dp) // Espacio para la barra de compra
+                .padding(bottom = 100.dp)
         ) {
-            // 1. Imagen Principal (Product Image Hero)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(screenHeight * 0.55f)
                     .clip(RoundedCornerShape(bottomStart = 40.dp, bottomEnd = 40.dp))
-            ){
-                AsyncImage(
-                    model = product.images.getOrNull(0),
-                    contentDescription = product.name,
-                    modifier = Modifier.fillMaxSize(), // Ahora sí llenará el 55% de la pantalla
-                    contentScale = ContentScale.Crop,
-                    placeholder = ColorPainter(Color.LightGray),
-                    error = ColorPainter(Color.LightGray)
-                )
+            ) {
+                HorizontalPager(
+                    state = pagerState,
+                    modifier = Modifier.fillMaxSize()
+                ) { page ->
+                    AsyncImage(
+                        model = product.images.getOrNull(page),
+                        contentDescription = "${product.name} image $page",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop,
+                        placeholder = ColorPainter(Color.LightGray),
+                        error = ColorPainter(Color.LightGray)
+                    )
+                }
+
+                if (product.images.size > 1) {
+                    Row(
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .padding(bottom = 60.dp), // Subimos un poco para que no quede tapado por la tarjeta
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        repeat(product.images.size) { iteration ->
+                            val color = if (pagerState.currentPage == iteration) Color.White else Color.White.copy(alpha = 0.5f)
+                            Box(
+                                modifier = Modifier
+                                    .padding(2.dp)
+                                    .clip(CircleShape)
+                                    .background(color)
+                                    .size(8.dp)
+                            )
+                        }
+                    }
+                }
             }
 
-            // 2. Tarjeta principal superpuesta (-mt-16)
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp)
-                    .offset(y = (-48).dp) // Superposición
+                    .offset(y = (-48).dp)
             ) {
-                // Main Details Card
-                Column(
-                    modifier = glassModifier.padding(24.dp)
-                ) {
+                // Main Details Card (Mantenido igual)
+                Column(modifier = glassModifier.padding(24.dp)) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement =  Arrangement.SpaceBetween,
+                        horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
@@ -120,7 +145,6 @@ private fun ProductDetailContent(product: Product, onBackClick: () -> Unit) {
                     Text("Description", fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
                     Text(product.description, color = Color.DarkGray, fontSize = 14.sp, modifier = Modifier.padding(top = 4.dp))
 
-                    // Tags
                     Row(modifier = Modifier.padding(top = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         product.stateTags.forEach { tag ->
                             Box(modifier = Modifier
@@ -136,20 +160,30 @@ private fun ProductDetailContent(product: Product, onBackClick: () -> Unit) {
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Seller Info Card
+                // 3. Seller Info Card (¡ACTUALIZADO CON DATOS REALES!)
                 Row(
                     modifier = glassModifier.padding(16.dp).fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement =  Arrangement.SpaceBetween,
+                    horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Box(modifier = Modifier.size(48.dp).clip(CircleShape).background(Color.Gray))
+                        // Foto de perfil del dueño
+                        AsyncImage(
+                            model = owner.profilePictureUrl,
+                            contentDescription = "Profile picture",
+                            modifier = Modifier
+                                .size(48.dp)
+                                .clip(CircleShape)
+                                .background(Color.LightGray),
+                            contentScale = ContentScale.Crop
+                        )
                         Spacer(modifier = Modifier.width(12.dp))
                         Column {
-                            Text(product.ownerId, fontWeight = FontWeight.Bold)
+                            // Nombre real
+                            Text("${owner.name} ${owner.lastname}", fontWeight = FontWeight.Bold)
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Icon(Icons.Default.Star, contentDescription = null, tint = Color(0xFFFFC107), modifier = Modifier.size(14.dp))
-                                Text("4.9 (124 reviews)", fontSize = 12.sp, color = Color.Gray)
+                                Text("Vendedor", fontSize = 12.sp, color = Color.Gray)
                             }
                         }
                     }
@@ -160,7 +194,6 @@ private fun ProductDetailContent(product: Product, onBackClick: () -> Unit) {
             }
         }
 
-        // 3. Top App Bar (Flotante)
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -171,12 +204,9 @@ private fun ProductDetailContent(product: Product, onBackClick: () -> Unit) {
             IconButton(
                 onClick = onBackClick,
                 modifier = Modifier.clip(CircleShape).background(Color.White.copy(alpha = 0.5f))
-            ) {
-                Icon(Icons.Default.ArrowBack, contentDescription = "Back")
-            }
+            ) { Icon(Icons.Default.ArrowBack, contentDescription = "Back") }
         }
 
-        // 4. Sticky Bottom Action Bar
         Row(
             modifier = Modifier
                 .align(Alignment.BottomCenter)

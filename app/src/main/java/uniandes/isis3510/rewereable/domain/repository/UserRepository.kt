@@ -7,4 +7,5 @@ interface UserRepository{
     suspend fun updateBalance(userId: String, newBalance: Double): Result<Boolean>
     suspend fun addToFavorites(userId: String, productId: String): Result<Boolean>
     suspend fun removeFromFavorites(userId: String, productId: String): Result<Boolean>
+
 }

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "259265846742",
+    "project_id": "swapp-io-aa00d",
+    "storage_bucket": "swapp-io-aa00d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:259265846742:android:f5f95fa337a098815f5877",
+        "android_client_info": {
+          "package_name": "uniandes.isis3510.rewereable"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCY2fpEbpsNPs9yyXVdFfKHVAbxSPgL63s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
