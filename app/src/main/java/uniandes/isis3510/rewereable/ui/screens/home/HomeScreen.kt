@@ -27,6 +27,7 @@ import uniandes.isis3510.rewereable.domain.model.Product
 import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.layout.ContentScale
 import coil.compose.AsyncImage
+import uniandes.isis3510.rewereable.ui.components.ProductCard
 
 @Composable
 fun HomeScreen(
@@ -174,96 +175,6 @@ private fun HomeContent(
                     onFavoriteClick = { onToggleFavorite(product.id) },
                     onClick = { onProductClick(product.id) }
                 )
-            }
-        }
-    }
-}
-
-@Composable
-fun ProductCard(
-    product: Product,
-    isFavorite: Boolean,
-    onFavoriteClick: () -> Unit,
-    onClick: () -> Unit
-) {
-    // Glass Card
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(Color.White.copy(alpha = 0.4f))
-            .clickable { onClick() }
-    ) {
-        // Área de la imagen
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .aspectRatio(3f / 4f)
-        ) {
-            AsyncImage(
-                model = product.images.getOrNull(0),
-                contentDescription = product.name,
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop,
-                placeholder = ColorPainter(Color.LightGray),
-                error = ColorPainter(Color.LightGray)
-            )
-            // Precio flotante (Glass Tag)
-            Box(
-                modifier = Modifier
-                    .align(Alignment.BottomStart)
-                    .padding(8.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(Color.White.copy(alpha = 0.7f))
-                    .padding(horizontal = 8.dp, vertical = 4.dp)
-            ) {
-                Text("$${product.price}", fontWeight = FontWeight.Bold, fontSize = 12.sp)
-            }
-
-            // Botón Favorito
-            Box(
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(8.dp)
-                    .size(32.dp)
-                    .clip(CircleShape)
-                    .background(Color.White.copy(alpha = 0.7f))
-                    .clickable { onFavoriteClick() },
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                    contentDescription = "Fav",
-                    modifier = Modifier.size(18.dp),
-                    tint = if (isFavorite) Color.Red else Color.Black)
-            }
-        }
-
-        // Información del producto
-        Column(modifier = Modifier.padding(12.dp)) {
-            Text(
-                text = product.name,
-                fontWeight = FontWeight.Bold,
-                fontSize = 14.sp,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis
-            )
-            Text(
-                text = "${product.brand ?: "Genérico"} • Talla ${product.size}",
-                fontSize = 12.sp,
-                color = Color.DarkGray,
-                modifier = Modifier.padding(top = 2.dp)
-            )
-
-            Divider(modifier = Modifier.padding(vertical = 8.dp), color = Color.Black.copy(alpha = 0.1f))
-
-            // Info del vendedor
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(
-                    modifier = Modifier.size(20.dp).clip(CircleShape).background(Color.Gray)
-                )
-                Spacer(modifier = Modifier.width(6.dp))
-                Text(text = product.ownerId, fontSize = 12.sp, color = Color.DarkGray)
             }
         }
     }

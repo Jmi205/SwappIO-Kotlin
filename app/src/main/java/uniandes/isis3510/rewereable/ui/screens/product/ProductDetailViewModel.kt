@@ -21,14 +21,14 @@ sealed class DetailUiState {
 
 class ProductDetailViewModel(
     private val productRepository: ProductRepository,
-    private val userRepository: UserRepository, // ¡NUEVO!
+    private val userRepository: UserRepository,
     private val productId: String
 ) : ViewModel() {
 
     companion object {
         fun provideFactory(
             productRepository: ProductRepository,
-            userRepository: UserRepository, // ¡NUEVO!
+            userRepository: UserRepository,
             productId: String
         ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")

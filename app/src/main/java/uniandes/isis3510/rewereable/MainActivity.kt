@@ -13,14 +13,15 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.auth
 import com.google.firebase.firestore.FirebaseFirestore
 import uniandes.isis3510.rewereable.domain.repository.AuthRepositoryImpl
 import uniandes.isis3510.rewereable.domain.repository.CharityRepositoryImpl
 import uniandes.isis3510.rewereable.domain.repository.ProductRepositoryImpl
 import uniandes.isis3510.rewereable.domain.repository.UserRepositoryImpl
+import uniandes.isis3510.rewereable.ui.activity.ActivityType
+import uniandes.isis3510.rewereable.ui.activity.UserActivityScreen
+import uniandes.isis3510.rewereable.ui.activity.UserActivityViewModel
 import uniandes.isis3510.rewereable.ui.components.BottomMenu
 import uniandes.isis3510.rewereable.ui.navigation.Screen
 import uniandes.isis3510.rewereable.ui.screens.auth.AuthViewModel
@@ -193,6 +194,49 @@ class MainActivity : ComponentActivity() {
                                 onBackClick = { navController.popBackStack() }
                             )
                         }
+
+                        composable(Screen.Favorites.route) {
+                            val favoritesViewModel: UserActivityViewModel = viewModel(
+                                factory = UserActivityViewModel.provideFactory(userRepository, productRepository, ActivityType.FAVORITES)
+                            )
+                            UserActivityScreen(
+                                title = "Favorites",
+                                viewModel = favoritesViewModel,
+                                onBackClick = { navController.popBackStack() },
+                                onProductClick = { productId ->
+                                    navController.navigate(Screen.Product.route.replace("{productId}", productId))
+                                }
+                            )
+                        }
+
+                        composable(Screen.Listings.route) {
+                            val listingsViewModel: UserActivityViewModel = viewModel(
+                                factory = UserActivityViewModel.provideFactory(userRepository, productRepository, ActivityType.LISTINGS)
+                            )
+                            UserActivityScreen(
+                                title = "My Listings",
+                                viewModel = listingsViewModel,
+                                onBackClick = { navController.popBackStack() },
+                                onProductClick = { productId ->
+                                    navController.navigate(Screen.Product.route.replace("{productId}", productId))
+                                }
+                            )
+                        }
+
+                        composable(Screen.Purchases.route) {
+                            val purchasesViewModel: UserActivityViewModel = viewModel(
+                                factory = UserActivityViewModel.provideFactory(userRepository, productRepository, ActivityType.PURCHASES)
+                            )
+                            UserActivityScreen(
+                                title = "My Purchases",
+                                viewModel = purchasesViewModel,
+                                onBackClick = { navController.popBackStack() },
+                                onProductClick = { productId ->
+                                    navController.navigate(Screen.Product.route.replace("{productId}", productId))
+                                }
+                            )
+                        }
+
                     }
                 }
             }

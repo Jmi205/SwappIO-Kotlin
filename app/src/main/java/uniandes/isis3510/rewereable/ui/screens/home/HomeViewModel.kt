@@ -1,5 +1,6 @@
 package uniandes.isis3510.rewereable.ui.screens.home
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
@@ -45,6 +46,7 @@ class HomeViewModel(
         viewModelScope.launch {
             _uiState.value = HomeUiState.Loading
             val currentUserId = auth.currentUser?.uid
+            Log.d("User ID", "User ID: $currentUserId" )
 
             if (currentUserId != null) {
                 val userResult = userRepository.getUserProfile(currentUserId)

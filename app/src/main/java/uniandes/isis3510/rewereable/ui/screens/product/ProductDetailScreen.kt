@@ -97,7 +97,7 @@ private fun ProductDetailContent(product: Product, owner: User, onBackClick: () 
                     Row(
                         modifier = Modifier
                             .align(Alignment.BottomCenter)
-                            .padding(bottom = 60.dp), // Subimos un poco para que no quede tapado por la tarjeta
+                            .padding(bottom = 60.dp),
                         horizontalArrangement = Arrangement.Center
                     ) {
                         repeat(product.images.size) { iteration ->
@@ -160,7 +160,6 @@ private fun ProductDetailContent(product: Product, owner: User, onBackClick: () 
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // 3. Seller Info Card (¡ACTUALIZADO CON DATOS REALES!)
                 Row(
                     modifier = glassModifier.padding(16.dp).fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
