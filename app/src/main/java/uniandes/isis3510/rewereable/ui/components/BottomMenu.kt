@@ -41,9 +41,8 @@ fun BottomMenu(navController: NavController, currentRoute: String?) {
             MenuItem(Icons.Default.Home, "Home", currentRoute == Screen.Home.route) { navController.navigate(Screen.Home.route) }
             MenuItem(Icons.Default.Favorite, "Donate", currentRoute == Screen.Donate.route) { navController.navigate(Screen.Donate.route) }
 
-            // Botón central "Sell"
             FloatingActionButton(
-                onClick = { navController.navigate(Screen.Sell.route) },
+                onClick = { navController.navigate(Screen.Add.route) },
                 containerColor = Primary,
                 shape = CircleShape,
                 modifier = Modifier

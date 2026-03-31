@@ -50,7 +50,7 @@ class HomeViewModel(
 
             if (currentUserId != null) {
                 val userResult = userRepository.getUserProfile(currentUserId)
-                val tagsResult = productRepository.getTags() // O getCategories() según lo hayas nombrado
+                val tagsResult = productRepository.getTags()
                 val productsResult = productRepository.getTrendingProducts()
 
                 if (tagsResult.isSuccess && productsResult.isSuccess && userResult.isSuccess) {
@@ -82,7 +82,7 @@ class HomeViewModel(
                 }
 
             }else {
-                _uiState.value = HomeUiState.Error("Usuario no autenticado")
+                _uiState.value = HomeUiState.Error("Usuario no autenticado | currentUserId")
             }
 
 

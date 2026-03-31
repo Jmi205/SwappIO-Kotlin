@@ -97,11 +97,16 @@ class ProductRepositoryImpl : ProductRepository {
                 size = document.getString("size") ?: "U",
                 brand = document.getString("brand"),
                 location = document.getString("location") ?: "",
+                latitude = document.getDouble("latitude")?: 0.0,
+                longitude = document.getDouble("longitude")?: 0.0,
                 images = document.get("images") as? List<String> ?: emptyList(),
                 stateTags = document.get("stateTags") as? List<String> ?: emptyList(),
                 styleTags = document.get("styleTags") as? List<String> ?: emptyList(),
                 status = statusEnum,
-                ownerId = document.getString("ownerId") ?: ""
+                condition = document.getString("condition") ?: "",
+                ownerId = document.getString("ownerId") ?: "",
+                createdAt = document.getLong("createdAt") ?: System.currentTimeMillis(),
+                updatedAt = document.getLong("updatedAt") ?: System.currentTimeMillis()
             )
         } catch (e: Exception) {
             null

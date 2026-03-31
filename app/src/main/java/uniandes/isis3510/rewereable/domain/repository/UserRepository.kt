@@ -8,4 +8,11 @@ interface UserRepository{
     suspend fun addToFavorites(userId: String, productId: String): Result<Boolean>
     suspend fun removeFromFavorites(userId: String, productId: String): Result<Boolean>
 
-}
+    suspend fun followUser(currentUserId: String, sellerId: String): Result<Boolean>
+
+    suspend fun unfollowUser(currentUserId: String, sellerId: String): Result<Boolean>
+
+    suspend fun addToListings(userId: String, productId: String): Result<Boolean>
+
+
+    }

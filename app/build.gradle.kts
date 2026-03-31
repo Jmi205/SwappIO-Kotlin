@@ -65,7 +65,8 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:34.11.0"))
     implementation("com.google.firebase:firebase-firestore")
     implementation("com.google.firebase:firebase-auth")
-
+    implementation("com.google.maps.android:maps-compose:8.2.2")
+    implementation("com.google.android.gms:play-services-maps:20.0.0")
 
 
 }

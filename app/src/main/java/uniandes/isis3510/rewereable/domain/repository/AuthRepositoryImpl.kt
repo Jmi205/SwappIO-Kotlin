@@ -38,7 +38,13 @@ class AuthRepositoryImpl(
                 profilePictureUrl = null,
                 purchases = emptyList(),
                 listings = emptyList(),
-                favorites = emptyList()
+                favorites = emptyList(),
+
+                rating = 0.0,
+                ratingCount = 0,
+                soldCount = 0,
+                followers = emptyList(),
+                following = emptyList()
             )
 
             firestore.collection("users").document(userId).set(user).await()

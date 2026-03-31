@@ -3,6 +3,7 @@ package uniandes.isis3510.rewereable.ui.screens.product
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -31,7 +32,9 @@ import uniandes.isis3510.rewereable.domain.model.User
 @Composable
 fun ProductDetailScreen(
     viewModel: ProductDetailViewModel,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    onSellerClick: (String) -> Unit
+
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -45,7 +48,7 @@ fun ProductDetailScreen(
             is DetailUiState.Error -> Text("Error xd xd", modifier = Modifier.align(Alignment.Center))
             is DetailUiState.Success -> {
                 val data = uiState as DetailUiState.Success
-                ProductDetailContent(data.product, data.owner, onBackClick)
+                ProductDetailContent(data.product, data.owner, onBackClick, onSellerClick)
             }
         }
     }
@@ -53,7 +56,12 @@ fun ProductDetailScreen(
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun ProductDetailContent(product: Product, owner: User, onBackClick: () -> Unit) {
+private fun ProductDetailContent(
+    product: Product,
+    owner: User,
+    onBackClick: () -> Unit,
+    onSellerClick: (String)-> Unit
+) {
     val scrollState = rememberScrollState()
     val configuration = LocalConfiguration.current
     val screenHeight = configuration.screenHeightDp.dp
@@ -161,7 +169,10 @@ private fun ProductDetailContent(product: Product, owner: User, onBackClick: () 
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Row(
-                    modifier = glassModifier.padding(16.dp).fillMaxWidth(),
+                    modifier = glassModifier
+                        .clickable { onSellerClick(owner.id) }
+                        .padding(16.dp)
+                        .fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween,
                 ) {

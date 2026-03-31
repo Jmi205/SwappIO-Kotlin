@@ -16,5 +16,11 @@ data class User(
 
     val purchases: List<String> = emptyList(),
     val listings: List<String> = emptyList(),
-    val favorites: List<String> = emptyList()
+    val favorites: List<String> = emptyList(),
+
+    val rating: Double = 0.0,
+    val ratingCount: Int = 0,
+    val soldCount: Int = 0,
+    val followers: List<String> = emptyList(),
+    val following: List<String> = emptyList()
 )

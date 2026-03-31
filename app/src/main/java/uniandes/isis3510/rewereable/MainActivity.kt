@@ -24,6 +24,8 @@ import uniandes.isis3510.rewereable.ui.activity.UserActivityScreen
 import uniandes.isis3510.rewereable.ui.activity.UserActivityViewModel
 import uniandes.isis3510.rewereable.ui.components.BottomMenu
 import uniandes.isis3510.rewereable.ui.navigation.Screen
+import uniandes.isis3510.rewereable.ui.screens.add.AddProductScreen
+import uniandes.isis3510.rewereable.ui.screens.add.AddProductViewModel
 import uniandes.isis3510.rewereable.ui.screens.auth.AuthViewModel
 import uniandes.isis3510.rewereable.ui.screens.auth.LoginScreen
 import uniandes.isis3510.rewereable.ui.screens.auth.RegisterScreen
@@ -37,6 +39,8 @@ import uniandes.isis3510.rewereable.ui.screens.product.ProductDetailScreen
 import uniandes.isis3510.rewereable.ui.screens.product.ProductDetailViewModel
 import uniandes.isis3510.rewereable.ui.screens.profile.ProfileScreen
 import uniandes.isis3510.rewereable.ui.screens.profile.ProfileViewModel
+import uniandes.isis3510.rewereable.ui.screens.seller.SellerProfileScreen
+import uniandes.isis3510.rewereable.ui.screens.seller.SellerProfileViewModel
 import uniandes.isis3510.rewereable.ui.theme.SwappIOTheme
 
 class MainActivity : ComponentActivity() {
@@ -75,7 +79,6 @@ class MainActivity : ComponentActivity() {
 
                 Scaffold(
                     bottomBar = {
-                        // Solo mostramos el menú si showBottomBar es true
                         if (showBottomBar) {
                             BottomMenu(
                                 navController = navController,
@@ -160,6 +163,22 @@ class MainActivity : ComponentActivity() {
                             /* InboxScreen() */
                         }
 
+                        composable("seller/{sellerId}") { backStackEntry ->
+                            val sellerId = backStackEntry.arguments?.getString("sellerId") ?: ""
+
+                            val sellerViewModel: SellerProfileViewModel = viewModel(
+                                factory = SellerProfileViewModel.provideFactory(userRepository, productRepository, sellerId)
+                            )
+
+                            SellerProfileScreen(
+                                viewModel = sellerViewModel,
+                                onBackClick = { navController.popBackStack() },
+                                onProductClick = { productId ->
+                                    navController.navigate(Screen.Product.route.replace("{productId}", productId))
+                                }
+                            )
+                        }
+
 
 
                         composable(Screen.Product.route) { backStackEntry ->
@@ -175,7 +194,10 @@ class MainActivity : ComponentActivity() {
 
                             ProductDetailScreen(
                                 viewModel = detailViewModel,
-                                onBackClick = { navController.popBackStack() }
+                                onBackClick = { navController.popBackStack() },
+                                onSellerClick = {sellerId ->
+                                    navController.navigate(Screen.Seller.route.replace("{sellerId}", sellerId))
+                                }
                             )
                         }
 
@@ -237,6 +259,17 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
+                        composable(Screen.Add.route){
+
+                            val addProductViewModel: AddProductViewModel = viewModel(
+                                factory = AddProductViewModel.provideFactory(productRepository, userRepository)
+                            )
+
+                            AddProductScreen(
+                                viewModel = addProductViewModel,
+                                onBackClick = {navController.popBackStack()}
+                            ) { }
+                        }
                     }
                 }
             }
