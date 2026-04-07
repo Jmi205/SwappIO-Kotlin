@@ -57,6 +57,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import uniandes.isis3510.rewereable.domain.model.Charity
 import uniandes.isis3510.rewereable.ui.theme.Primary
+import androidx.compose.foundation.clickable
 
 private data class DropOffPreview(
     val title: String,
@@ -69,7 +70,8 @@ private data class DropOffPreview(
 @Composable
 fun CharityDetailScreen(
     viewModel: CharityDetailViewModel,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    onNavigateToDropOffMap: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -104,7 +106,8 @@ fun CharityDetailScreen(
             is CharityDetailUiState.Success -> {
                 CharityDetailContent(
                     charity = (uiState as CharityDetailUiState.Success).charity,
-                    onBackClick = onBackClick
+                    onBackClick = onBackClick,
+                    onNavigateToDropOffMap = onNavigateToDropOffMap
                 )
             }
         }
@@ -114,7 +117,8 @@ fun CharityDetailScreen(
 @Composable
 private fun CharityDetailContent(
     charity: Charity,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    onNavigateToDropOffMap: () -> Unit
 ) {
     val topPadding = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
     val bottomPadding = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
@@ -163,7 +167,10 @@ private fun CharityDetailContent(
 
         Spacer(modifier = Modifier.height(18.dp))
 
-        DropOffPreviewSection(dropOffs = previewDropOffs)
+        DropOffPreviewSection(
+            dropOffs = previewDropOffs,
+            onViewMapClick = onNavigateToDropOffMap
+        )
 
         Spacer(modifier = Modifier.height(18.dp))
 
@@ -533,7 +540,8 @@ private fun ImpactCard(charity: Charity) {
 
 @Composable
 private fun DropOffPreviewSection(
-    dropOffs: List<DropOffPreview>
+    dropOffs: List<DropOffPreview>,
+    onViewMapClick: () -> Unit
 ) {
     Column {
         Row(
@@ -552,6 +560,7 @@ private fun DropOffPreviewSection(
                 modifier = Modifier
                     .clip(RoundedCornerShape(999.dp))
                     .background(Color.White.copy(alpha = 0.60f))
+                    .clickable { onViewMapClick() }
                     .padding(horizontal = 12.dp, vertical = 7.dp)
             ) {
                 Text(

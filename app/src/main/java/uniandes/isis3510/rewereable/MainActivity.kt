@@ -42,6 +42,9 @@ import uniandes.isis3510.rewereable.ui.screens.profile.ProfileViewModel
 import uniandes.isis3510.rewereable.ui.screens.seller.SellerProfileScreen
 import uniandes.isis3510.rewereable.ui.screens.seller.SellerProfileViewModel
 import uniandes.isis3510.rewereable.ui.theme.SwappIOTheme
+import uniandes.isis3510.rewereable.domain.repository.DropOffRepositoryImpl
+import uniandes.isis3510.rewereable.ui.screens.map.MapDropOffScreen
+import uniandes.isis3510.rewereable.ui.screens.map.MapDropOffViewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -58,6 +61,8 @@ class MainActivity : ComponentActivity() {
 
         val charityRepository = CharityRepositoryImpl()
         val donateViewModel = DonateViewModel(charityRepository)
+
+        val dropOffRepository = DropOffRepositoryImpl()
 
         setContent {
             SwappIOTheme {
@@ -213,6 +218,20 @@ class MainActivity : ComponentActivity() {
 
                             CharityDetailScreen(
                                 viewModel = charityDetailViewModel,
+                                onBackClick = { navController.popBackStack() },
+                                onNavigateToDropOffMap = {
+                                    navController.navigate(Screen.DropOffMap.route)
+                                }
+                            )
+                        }
+
+                        composable(Screen.DropOffMap.route) {
+                            val mapDropOffViewModel: MapDropOffViewModel = viewModel(
+                                factory = MapDropOffViewModel.provideFactory(dropOffRepository)
+                            )
+
+                            MapDropOffScreen(
+                                viewModel = mapDropOffViewModel,
                                 onBackClick = { navController.popBackStack() }
                             )
                         }

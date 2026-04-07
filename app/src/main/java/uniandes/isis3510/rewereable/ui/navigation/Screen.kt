@@ -26,4 +26,6 @@ sealed class Screen(val route: String) {
 
 
     object CharityDetail : Screen("charity_details/{charityId}")
+
+    object DropOffMap : Screen("dropoff_map")
 }
