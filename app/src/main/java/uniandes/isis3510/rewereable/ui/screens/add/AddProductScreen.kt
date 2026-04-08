@@ -61,8 +61,10 @@ fun AddProductScreen(
         }
     }
 
+    val bogotaCenter = LatLng(4.6097, -74.0817)
+
     val cameraPositionState = rememberCameraPositionState {
-        position = CameraPosition.fromLatLngZoom(selectedLatLng, 12f)
+        position = CameraPosition.fromLatLngZoom(bogotaCenter, 11f)
     }
 
     LaunchedEffect(uiState) {
@@ -277,6 +279,59 @@ fun AddProductScreen(
                     shape = RoundedCornerShape(16.dp),
                     maxLines = 5
                 )
+
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        "Location",
+                        fontWeight = FontWeight.Bold,
+                        color = Color.DarkGray,
+                        modifier = Modifier.padding(start = 4.dp)
+                    )
+
+                    OutlinedTextField(
+                        value = location,
+                        onValueChange = { viewModel.location.value = it },
+                        label = { Text("Approximate area") },
+                        placeholder = { Text("e.g. Chapinero, Bogotá") },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp),
+                        singleLine = true
+                    )
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(220.dp)
+                            .then(glassModifier)
+                            .clip(RoundedCornerShape(16.dp))
+                    ) {
+                        GoogleMap(
+                            modifier = Modifier.fillMaxSize(),
+                            cameraPositionState = cameraPositionState,
+                            onMapClick = { newLatLng ->
+                                viewModel.selectedLatLng.value = newLatLng
+                            }
+                        ) {
+                            selectedLatLng?.let {
+                                Marker(
+                                    state = MarkerState(position = it),
+                                    title = "Selected location",
+                                    snippet = "Tap the map to move the pin"
+                                )
+                            }
+                        }
+                    }
+
+                    Text(
+                        text = if (selectedLatLng != null)
+                            "Exact location selected on map"
+                        else
+                            "Tap the map to select the exact location",
+                        fontSize = 12.sp,
+                        color = Color.Gray,
+                        modifier = Modifier.padding(start = 4.dp)
+                    )
+                }
 
                 // Botón de Enviar
                 Button(

@@ -37,9 +37,9 @@ class AddProductViewModel(
     var size = MutableStateFlow("M")
     var condition = MutableStateFlow("Good")
     var description = MutableStateFlow("")
-    var location = MutableStateFlow("Bogotá")
+    var location = MutableStateFlow("")
 
-    val selectedLatLng = MutableStateFlow(LatLng(4.6097, -74.0817))
+    val selectedLatLng = MutableStateFlow<LatLng?>(null)
 
     var selectedImages = MutableStateFlow<List<String>>(emptyList())
 
@@ -51,8 +51,13 @@ class AddProductViewModel(
         }
 
         // Validación básica
-        if (title.value.isBlank() || price.value.isBlank()) {
-            _uiState.value = AddProductUiState.Error("Por favor, llena el título y el precio.")
+        if (title.value.isBlank() || price.value.isBlank() || location.value.isBlank()) {
+            _uiState.value = AddProductUiState.Error("Por favor, llena el título, el precio y la ubicación.")
+            return
+        }
+
+        if (selectedLatLng.value == null) {
+            _uiState.value = AddProductUiState.Error("Selecciona una ubicación en el mapa.")
             return
         }
 
@@ -72,8 +77,8 @@ class AddProductViewModel(
                 condition = condition.value,
                 description = description.value,
                 location = location.value,
-                latitude = selectedLatLng.value.latitude,
-                longitude = selectedLatLng.value.longitude,
+                latitude = selectedLatLng.value?.latitude,
+                longitude = selectedLatLng.value?.longitude,
                 images = uploadedUrls, // Se reemplazará con las de Cloudinary luego
                 ownerId = currentUserId,
                 status = ProductStatus.AVAILABLE
