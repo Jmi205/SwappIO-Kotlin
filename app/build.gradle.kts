@@ -55,6 +55,7 @@ dependencies {
     implementation(libs.androidx.compose.material.icons.extended)
     implementation(libs.coil.compose)
     implementation(libs.androidx.compose.foundation.layout)
+    implementation(libs.androidx.compose.foundation)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -67,6 +68,7 @@ dependencies {
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.maps.android:maps-compose:8.2.2")
     implementation("com.google.android.gms:play-services-maps:20.0.0")
+    implementation("com.google.firebase:firebase-storage:20.3.0")
 
 
 }
