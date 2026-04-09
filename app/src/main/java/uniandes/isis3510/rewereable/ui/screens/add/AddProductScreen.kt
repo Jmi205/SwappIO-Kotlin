@@ -1,12 +1,15 @@
 package uniandes.isis3510.rewereable.ui.screens.add
 
 import android.net.Uri
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -21,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -53,6 +57,10 @@ fun AddProductScreen(
     val selectedImages by viewModel.selectedImages.collectAsState()
     val selectedLatLng by viewModel.selectedLatLng.collectAsState()
 
+    val styleTags by viewModel.styleTags.collectAsState()
+
+    val context = LocalContext.current
+
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickMultipleVisualMedia(maxItems = 3)
     ) { uris ->
@@ -61,15 +69,18 @@ fun AddProductScreen(
         }
     }
 
+    val bogotaCenter = LatLng(4.6097, -74.0817)
+
     val cameraPositionState = rememberCameraPositionState {
-        position = CameraPosition.fromLatLngZoom(selectedLatLng, 12f)
+        position = CameraPosition.fromLatLngZoom(bogotaCenter, 11f)
     }
 
-    LaunchedEffect(uiState) {
-        if (uiState is AddProductUiState.Success) {
-            onSuccess()
-        }
-    }
+    //LaunchedEffect(uiState) {
+    //    if (uiState is AddProductUiState.Success) {
+    //        Toast.makeText(context, "¡Producto publicado con éxito!", Toast.LENGTH_LONG).show()
+    //        onSuccess()
+    //    }
+    //}
 
     val glassModifier = Modifier
         .background(GlassBackground, RoundedCornerShape(16.dp))
@@ -235,37 +246,29 @@ fun AddProductScreen(
                     }
                 }
 
-                // --- Mapa ---
-                //Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                //    Text("Location", fontWeight = FontWeight.Bold, color = Color.DarkGray, modifier = Modifier.padding(start = 4.dp))
-                //    OutlinedTextField(
-                //        value = location,
-                //        onValueChange = { viewModel.location.value = it },
-                //        placeholder = { Text("e.g. Chapinero, Bogotá") },
-                //       modifier = Modifier.fillMaxWidth(),
-                //      shape = RoundedCornerShape(16.dp),
-                //      singleLine = true
-                //  )
-                //  Box(
-                //      modifier = Modifier.fillMaxWidth().height(200.dp).then(glassModifier).clip(RoundedCornerShape(16.dp))
-                //  ) {
-                //      GoogleMap(
-                //          modifier = Modifier.fillMaxSize(),
-                //          cameraPositionState = cameraPositionState,
-                //          onMapClick = { newLatLng ->
-                //              viewModel.selectedLatLng.value = newLatLng
-                //          }
-                //      ) {
-                //          // Usamos MarkerState en línea en lugar de recordarlo externamente, esto es más estable
-                //          Marker(
-                //              state = MarkerState(position = selectedLatLng),
-                //            title = "Ubicación de entrega",
-                //              snippet = "Toca el mapa para mover el pin"
-                //          )
-                //      }
-                //  }
-                //  Text("Toca el mapa para establecer la ubicación exacta", fontSize = 12.sp, color = Color.Gray, modifier = Modifier.padding(start = 4.dp))
-                //}
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("Style Tags (Max 3)", fontWeight = FontWeight.Bold, color = Color.DarkGray, modifier = Modifier.padding(start = 4.dp))
+
+                    val availableTags = listOf("Denim", "Old Money", "Y2K", "Vintage", "Streetwear", "Minimalist", "Coquette", "Gorpcore")
+
+                    LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        items(availableTags) { tag ->
+                            val isSelected = styleTags.contains(tag)
+                            FilterChip(
+                                selected = isSelected,
+                                onClick = { viewModel.toggleStyleTag(tag) },
+                                label = { Text(tag) },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = MaterialTheme.colorScheme.primary,
+                                    selectedLabelColor = Color.White
+                                )
+                            )
+                        }
+                    }
+                }
 
                 // --- Descripción ---
                 OutlinedTextField(
@@ -277,6 +280,59 @@ fun AddProductScreen(
                     shape = RoundedCornerShape(16.dp),
                     maxLines = 5
                 )
+
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        "Location",
+                        fontWeight = FontWeight.Bold,
+                        color = Color.DarkGray,
+                        modifier = Modifier.padding(start = 4.dp)
+                    )
+
+                    OutlinedTextField(
+                        value = location,
+                        onValueChange = { viewModel.location.value = it },
+                        label = { Text("Approximate area") },
+                        placeholder = { Text("e.g. Chapinero, Bogotá") },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp),
+                        singleLine = true
+                    )
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(220.dp)
+                            .then(glassModifier)
+                            .clip(RoundedCornerShape(16.dp))
+                    ) {
+                        GoogleMap(
+                            modifier = Modifier.fillMaxSize(),
+                            cameraPositionState = cameraPositionState,
+                            onMapClick = { newLatLng ->
+                                viewModel.selectedLatLng.value = newLatLng
+                            }
+                        ) {
+                            selectedLatLng?.let {
+                                Marker(
+                                    state = MarkerState(position = it),
+                                    title = "Selected location",
+                                    snippet = "Tap the map to move the pin"
+                                )
+                            }
+                        }
+                    }
+
+                    Text(
+                        text = if (selectedLatLng != null)
+                            "Exact location selected on map"
+                        else
+                            "Tap the map to select the exact location",
+                        fontSize = 12.sp,
+                        color = Color.Gray,
+                        modifier = Modifier.padding(start = 4.dp)
+                    )
+                }
 
                 // Botón de Enviar
                 Button(

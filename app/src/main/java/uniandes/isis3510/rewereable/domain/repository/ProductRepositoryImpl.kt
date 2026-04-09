@@ -100,7 +100,6 @@ class ProductRepositoryImpl : ProductRepository {
                 latitude = document.getDouble("latitude")?: 0.0,
                 longitude = document.getDouble("longitude")?: 0.0,
                 images = document.get("images") as? List<String> ?: emptyList(),
-                stateTags = document.get("stateTags") as? List<String> ?: emptyList(),
                 styleTags = document.get("styleTags") as? List<String> ?: emptyList(),
                 status = statusEnum,
                 condition = document.getString("condition") ?: "",
@@ -110,6 +109,15 @@ class ProductRepositoryImpl : ProductRepository {
             )
         } catch (e: Exception) {
             null
+        }
+    }
+
+    override suspend fun deleteProduct(productId: String): Result<Boolean> {
+        return try {
+            firestore.collection("products").document(productId).delete().await()
+            Result.success(true)
+        } catch (e: Exception) {
+            Result.failure(e)
         }
     }
 }

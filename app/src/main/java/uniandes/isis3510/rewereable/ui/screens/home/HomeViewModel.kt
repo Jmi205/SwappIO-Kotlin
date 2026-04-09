@@ -134,7 +134,6 @@ class HomeViewModel(
 
             // Si el tag es "Trending" o "All", mostramos todos. Si no, buscamos coincidencias.
             val matchesCategory = selectedTag == "Trending" || selectedTag == "All" ||
-                    product.stateTags.any { it.equals(selectedTag, ignoreCase = true) } ||
                     product.styleTags.any { it.equals(selectedTag, ignoreCase = true) }
 
             matchesSearch && matchesCategory
@@ -155,7 +154,6 @@ class HomeViewModel(
                     currentFavs.add(productId)
                     userRepository.addToFavorites(userId, productId)
                 }
-                // Actualizamos la UI
                 _uiState.value = currentState.copy(favoriteIds = currentFavs)
             }
         }

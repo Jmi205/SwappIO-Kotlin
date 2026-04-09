@@ -202,6 +202,10 @@ class MainActivity : ComponentActivity() {
                                 onBackClick = { navController.popBackStack() },
                                 onSellerClick = {sellerId ->
                                     navController.navigate(Screen.Seller.route.replace("{sellerId}", sellerId))
+                                },
+                                onProductClick = { newProductId ->
+                                    val route = Screen.Product.route.replace("{productId}", newProductId)
+                                    navController.navigate(route)
                                 }
                             )
                         }
@@ -286,8 +290,13 @@ class MainActivity : ComponentActivity() {
 
                             AddProductScreen(
                                 viewModel = addProductViewModel,
-                                onBackClick = {navController.popBackStack()}
-                            ) { }
+                                onBackClick = { navController.popBackStack() },
+                                onSuccess = {
+                                    navController.navigate(Screen.Listings.route) {
+                                        popUpTo(Screen.Home.route)
+                                    }
+                                }
+                            )
                         }
                     }
                 }

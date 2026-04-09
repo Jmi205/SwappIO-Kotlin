@@ -19,7 +19,6 @@ data class Product(
     val description: String,
 
     val condition: String,
-    val stateTags: List<String> = emptyList(),
     val styleTags: List<String> = emptyList(),
     val status: ProductStatus,
 
