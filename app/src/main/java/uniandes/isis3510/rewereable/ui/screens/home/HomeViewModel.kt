@@ -42,7 +42,7 @@ class HomeViewModel(
         loadHomeData()
     }
 
-    private fun loadHomeData() {
+    fun loadHomeData() {
         viewModelScope.launch {
             _uiState.value = HomeUiState.Loading
             val currentUserId = auth.currentUser?.uid

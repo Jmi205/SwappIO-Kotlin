@@ -1,5 +1,6 @@
 package uniandes.isis3510.rewereable.domain.repository
 
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 import uniandes.isis3510.rewereable.domain.model.Product
@@ -80,7 +81,7 @@ class ProductRepositoryImpl : ProductRepository {
 
     private fun mapDocumentToProduct(document: com.google.firebase.firestore.DocumentSnapshot): Product? {
         return try {
-            // Firebase guarda los Enums como Strings, los convertimos de vuelta:
+
             val statusString = document.getString("status") ?: ProductStatus.AVAILABLE.name
             val statusEnum = try {
                 ProductStatus.valueOf(statusString)
@@ -112,9 +113,19 @@ class ProductRepositoryImpl : ProductRepository {
         }
     }
 
-    override suspend fun deleteProduct(productId: String): Result<Boolean> {
+    override suspend fun deleteProduct(productId: String, ownerId: String): Result<Boolean> {
         return try {
-            firestore.collection("products").document(productId).delete().await()
+            val batch = firestore.batch()
+
+            val productRef = firestore.collection("products").document(productId)
+            val userRef = firestore.collection("users").document(ownerId)
+
+            batch.delete(productRef)
+
+            batch.update(userRef, "listings", FieldValue.arrayRemove(productId))
+
+            batch.commit().await()
+
             Result.success(true)
         } catch (e: Exception) {
             Result.failure(e)

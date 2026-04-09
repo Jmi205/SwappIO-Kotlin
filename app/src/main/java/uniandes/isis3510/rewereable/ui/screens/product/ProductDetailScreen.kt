@@ -44,7 +44,8 @@ fun ProductDetailScreen(
     viewModel: ProductDetailViewModel,
     onBackClick: () -> Unit,
     onSellerClick: (String) -> Unit,
-    onProductClick: (String) -> Unit // ¡NUEVO! Para navegar a las sugerencias
+    onProductClick: (String) -> Unit,
+    onNavigateToChat: (String) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -62,7 +63,10 @@ fun ProductDetailScreen(
                     onBackClick = onBackClick,
                     onSellerClick = onSellerClick,
                     onProductClick = onProductClick,
-                    onDeleteConfirm = { viewModel.deleteProduct(onSuccess = onBackClick) } // Redirige atrás al borrar
+                    onDeleteConfirm = { viewModel.deleteProduct(onSuccess = onBackClick) },
+                    onStartChatClick = {
+                        viewModel.startChatWithSeller(onChatCreated = onNavigateToChat)
+                    }
                 )
             }
         }
@@ -80,7 +84,8 @@ private fun ProductDetailContent(
     onBackClick: () -> Unit,
     onSellerClick: (String) -> Unit,
     onProductClick: (String) -> Unit,
-    onDeleteConfirm: () -> Unit
+    onDeleteConfirm: () -> Unit,
+    onStartChatClick: () -> Unit
 ) {
     val scrollState = rememberScrollState()
     val configuration = LocalConfiguration.current
@@ -158,9 +163,6 @@ private fun ProductDetailContent(
 
                     Text("Description", fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
                     Text(product.description, color = Color.DarkGray, fontSize = 14.sp, modifier = Modifier.padding(top = 4.dp))
-
-
-
 
                     val conditionContainerColor = when (product.condition) {
                         "New with tags" -> Color(0xFFE8F5E9) // Verde claro
@@ -260,9 +262,12 @@ private fun ProductDetailContent(
                             }
                         }
                     }
-                    IconButton(onClick = { /* Chat */ }) {
-                        Icon(Icons.Default.ChatBubble, contentDescription = "Chat", tint = Color(0xFF077288))
-                    }                }
+                    if (!isOwner) {
+                        IconButton(onClick = onStartChatClick) {
+                            Icon(Icons.Default.ChatBubble, contentDescription = "Chat", tint = MaterialTheme.colorScheme.primary)
+                        }
+                    }
+                }
 
                 // --- SUGGESTIONS CAROUSEL (NUEVO) ---
                 if (suggestions.isNotEmpty()) {

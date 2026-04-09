@@ -52,7 +52,7 @@ fun BottomMenu(navController: NavController, currentRoute: String?) {
                 Icon(Icons.Default.Add, contentDescription = "Sell", tint = Color.White)
             }
 
-            MenuItem(Icons.Default.Email, "Inbox", currentRoute == Screen.Inbox.route) { navController.navigate(Screen.Inbox.route) }
+            MenuItem(Icons.Default.Email, "Inbox", currentRoute == Screen.ChatList.route) { navController.navigate(Screen.ChatList.route) }
             MenuItem(Icons.Default.Person, "Profile", currentRoute == Screen.Profile.route) { navController.navigate(Screen.Profile.route) }
         }
     }
