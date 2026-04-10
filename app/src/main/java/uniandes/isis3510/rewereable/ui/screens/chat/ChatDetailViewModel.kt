@@ -12,6 +12,7 @@ import kotlinx.coroutines.launch
 import uniandes.isis3510.rewereable.domain.model.Message
 import uniandes.isis3510.rewereable.domain.repository.ChatRepository
 import uniandes.isis3510.rewereable.domain.repository.UserRepository
+import uniandes.isis3510.rewereable.util.AnalyticsHelper
 
 data class ChatDetailState(
     val isLoading: Boolean = true,
@@ -50,10 +51,15 @@ class ChatDetailViewModel(
             val chatResult = chatRepository.getChatChannelById(chatId)
 
             if (chatResult.isSuccess) {
+
+                AnalyticsHelper.logMessageSent(
+                    chatId = chatId,
+                    hasProductContext = _uiState.value.relatedProductId != null
+                )
+
                 val chatChannel = chatResult.getOrNull()!!
 
                 val otherUserId = chatChannel.participantIds.firstOrNull { it != currentUserId } ?: ""
-                Log.d("ChatDetailViewModel", "Related product Id: $chatChannel.relatedProductId")
 
                 _uiState.value = _uiState.value.copy(
                     otherUserName = chatChannel.participantNames[otherUserId] ?: "Usuario",

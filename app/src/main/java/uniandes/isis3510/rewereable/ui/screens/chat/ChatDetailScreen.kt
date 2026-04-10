@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import uniandes.isis3510.rewereable.domain.model.Message
+import uniandes.isis3510.rewereable.util.AnalyticsHelper
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -39,7 +40,10 @@ fun ChatDetailScreen(
     val uiState by viewModel.uiState.collectAsState()
     val currentMessage by viewModel.currentMessage.collectAsState()
 
-    // Colores basados en tu Tailwind config
+    LaunchedEffect(Unit) {
+        AnalyticsHelper.logScreenView("ChatDetail")
+    }
+
     val primaryColor = Color(0xFF077288)
     val tertiaryColor = Color(0xFF74a57f)
     val surfaceColor = Color(0xFFf5f8f8)

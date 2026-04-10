@@ -58,6 +58,8 @@ import androidx.compose.ui.unit.sp
 import uniandes.isis3510.rewereable.domain.model.Charity
 import uniandes.isis3510.rewereable.ui.theme.Primary
 import androidx.compose.foundation.clickable
+import androidx.compose.runtime.LaunchedEffect
+import uniandes.isis3510.rewereable.util.AnalyticsHelper
 
 private data class DropOffPreview(
     val title: String,
@@ -74,6 +76,10 @@ fun CharityDetailScreen(
     onNavigateToDropOffMap: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
+
+    LaunchedEffect(Unit) {
+        AnalyticsHelper.logScreenView("CharityDetail")
+    }
 
     Box(
         modifier = Modifier

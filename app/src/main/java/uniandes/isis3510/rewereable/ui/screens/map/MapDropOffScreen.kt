@@ -75,6 +75,7 @@ import kotlin.math.sqrt
 import uniandes.isis3510.rewereable.domain.model.DropOffPoint
 import uniandes.isis3510.rewereable.ui.theme.Primary
 import androidx.compose.foundation.layout.height
+import uniandes.isis3510.rewereable.util.AnalyticsHelper
 
 private enum class TravelMode {
     WALK, DRIVE
@@ -86,6 +87,10 @@ fun MapDropOffScreen(
     onBackClick: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
+
+    LaunchedEffect(Unit) {
+        AnalyticsHelper.logScreenView("MapDropOff")
+    }
 
     Box(
         modifier = Modifier

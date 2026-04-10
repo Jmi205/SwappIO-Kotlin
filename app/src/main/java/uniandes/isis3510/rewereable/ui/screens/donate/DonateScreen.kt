@@ -44,6 +44,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
@@ -57,6 +58,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import uniandes.isis3510.rewereable.domain.model.Charity
 import uniandes.isis3510.rewereable.ui.theme.Primary
+import uniandes.isis3510.rewereable.util.AnalyticsHelper
 
 @Composable
 fun DonateScreen(
@@ -64,6 +66,10 @@ fun DonateScreen(
     onNavigateToCharityDetails: (String) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
+
+    LaunchedEffect(Unit) {
+        AnalyticsHelper.logScreenView("Donate")
+    }
 
     Box(
         modifier = Modifier
