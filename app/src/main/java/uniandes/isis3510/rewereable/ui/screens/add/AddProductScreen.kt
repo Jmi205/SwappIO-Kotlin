@@ -37,8 +37,27 @@ import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
 import uniandes.isis3510.rewereable.ui.theme.GlassBackground
+import android.content.Context
+import androidx.core.content.FileProvider
+import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
+
+private fun createImageUri(context: Context): Uri {
+    val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+    val imagesDir = File(context.cacheDir, "images").apply { mkdirs() }
+    val imageFile = File(imagesDir, "JPEG_${timeStamp}.jpg")
+
+    return FileProvider.getUriForFile(
+        context,
+        "${context.packageName}.fileprovider",
+        imageFile
+    )
+}
+
 @Composable
 fun AddProductScreen(
     viewModel: AddProductViewModel,
@@ -65,9 +84,33 @@ fun AddProductScreen(
         contract = ActivityResultContracts.PickMultipleVisualMedia(maxItems = 3)
     ) { uris ->
         if (uris.isNotEmpty()) {
-            viewModel.selectedImages.value = uris.map { it.toString() }
+            val currentImages = viewModel.selectedImages.value.toMutableList()
+            val remainingSlots = 3 - currentImages.size
+
+            if (remainingSlots > 0) {
+                currentImages.addAll(uris.take(remainingSlots).map { it.toString() })
+                viewModel.selectedImages.value = currentImages
+            } else {
+                Toast.makeText(context, "3 photos maximum", Toast.LENGTH_SHORT).show()
+            }
         }
     }
+    var cameraImageUri by remember { mutableStateOf<Uri?>(null) }
+
+    val takePictureLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture()
+    ) { success ->
+        if (success && cameraImageUri != null) {
+            val currentImages = viewModel.selectedImages.value.toMutableList()
+            if (currentImages.size < 3) {
+                currentImages.add(cameraImageUri.toString())
+                viewModel.selectedImages.value = currentImages
+            } else {
+                Toast.makeText(context, "Máximo 3 fotos", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
 
     val bogotaCenter = LatLng(4.6097, -74.0817)
 
@@ -117,14 +160,55 @@ fun AddProductScreen(
                 // --- Fotos ---
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text("Photos", fontWeight = FontWeight.Bold, color = Color.DarkGray, modifier = Modifier.padding(start = 4.dp))
+
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        OutlinedButton(
+                            onClick = {
+                                if (selectedImages.size < 3) {
+                                    val newUri = createImageUri(context)
+                                    cameraImageUri = newUri
+                                    takePictureLauncher.launch(newUri)
+                                } else {
+                                    Toast.makeText(context, "Máximo 3 fotos", Toast.LENGTH_SHORT).show()
+                                }
+                            },
+                            shape = RoundedCornerShape(16.dp)
+                        ) {
+                            Icon(Icons.Default.PhotoCamera, contentDescription = null)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Take Photo")
+                        }
+
+                        OutlinedButton(
+                            onClick = {
+                                val remainingSlots = 3 - selectedImages.size
+                                if (remainingSlots > 0) {
+                                    photoPickerLauncher.launch(
+                                        androidx.activity.result.PickVisualMediaRequest(
+                                            ActivityResultContracts.PickVisualMedia.ImageOnly
+                                        )
+                                    )
+                                } else {
+                                    Toast.makeText(context, "Máximo 3 fotos", Toast.LENGTH_SHORT).show()
+                                }
+                            },
+                            shape = RoundedCornerShape(16.dp)
+                        ) {
+                            Icon(Icons.Default.PhotoLibrary, contentDescription = null)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Gallery")
+                        }
+                    }
+
                     Row(modifier = Modifier.fillMaxWidth().height(140.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         Box(
-                            modifier = Modifier.weight(2f).fillMaxHeight().then(glassModifier).clip(RoundedCornerShape(16.dp))
-                                .clickable {
-                                    photoPickerLauncher.launch(
-                                        androidx.activity.result.PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-                                    )
-                                },
+                            modifier = Modifier
+                                .weight(2f)
+                                .fillMaxHeight()
+                                .then(glassModifier)
+                                .clip(RoundedCornerShape(16.dp)),
                             contentAlignment = Alignment.Center
                         ) {
                             if (selectedImages.isNotEmpty()) {
