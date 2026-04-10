@@ -64,7 +64,12 @@ class DonateViewModel(
                     featuredCharity = allCharities.firstOrNull { it.isFeatured }
                 )
             } else {
-                _uiState.value = DonateUiState.Error("No se pudieron cargar las charities.")
+                val categoriesError = categoriesResult.exceptionOrNull()?.message
+                val charitiesError = charitiesResult.exceptionOrNull()?.message
+
+                _uiState.value = DonateUiState.Error(
+                    "Error categories: $categoriesError | Error charities: $charitiesError"
+                )
             }
         }
     }

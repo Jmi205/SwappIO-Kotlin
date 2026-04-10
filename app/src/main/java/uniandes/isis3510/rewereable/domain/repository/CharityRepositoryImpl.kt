@@ -1,77 +1,86 @@
 package uniandes.isis3510.rewereable.domain.repository
 
+import com.google.firebase.firestore.DocumentSnapshot
+import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.tasks.await
 import uniandes.isis3510.rewereable.domain.model.Charity
 
-class CharityRepositoryImpl : CharityRepository {
+class CharityRepositoryImpl(
+    private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()
+) : CharityRepository {
 
-    private val charities = listOf(
-        Charity(
-            id = "charity_1",
-            name = "Fundación Niños de los Andes",
-            location = "Chapinero, Bogotá",
-            description = "Dedicated to the protection and rehabilitation of street children, providing shelter and education.",
-            tags = listOf("Children", "Clothes"),
-            distance = "2.1km away",
-            impact = "Protection and rehabilitation of vulnerable children.",
-            number = "+57 300 111 2233",
-            email = "contacto@ninosandes.org",
-            website = "https://ninosandes.org",
-            isFeatured = true
-        ),
-        Charity(
-            id = "charity_2",
-            name = "Banco de Ropa",
-            location = "Usaquén, Bogotá",
-            description = "Collecting gently used clothing for families in need across Colombia. We ensure dignity through clean clothes.",
-            tags = listOf("Winter Gear", "Men"),
-            distance = "1.2km away",
-            impact = "Distribution of donated clothing to families in need.",
-            number = "+57 300 222 3344",
-            email = "info@bancodeRopa.org",
-            website = "https://bancodeRopa.org"
-        ),
-        Charity(
-            id = "charity_3",
-            name = "Fundación Mujer",
-            location = "Teusaquillo, Bogotá",
-            description = "Supporting single mothers with professional attire for job interviews and daily essentials.",
-            tags = listOf("Women", "Professional"),
-            distance = "3.5km away",
-            impact = "Support for women through clothing and employability resources.",
-            number = "+57 300 333 4455",
-            email = "hola@fundacionmujer.org",
-            website = "https://fundacionmujer.org"
-        ),
-        Charity(
-            id = "charity_4",
-            name = "Escuela Nueva",
-            location = "Suba, Bogotá",
-            description = "We accept uniforms, shoes, and backpacks for rural students starting their academic year.",
-            tags = listOf("Uniforms", "Kids"),
-            distance = "5.8km away",
-            impact = "School support for children in vulnerable communities.",
-            number = "+57 300 444 5566",
-            email = "contacto@escuelanueva.org",
-            website = "https://escuelanueva.org"
-        )
-    )
+    private val charitiesCollection = firestore.collection("charities")
 
     override suspend fun getCategories(): Result<List<String>> {
-        return Result.success(
-            listOf("Near Me", "Children", "Winter Gear", "Women", "Books")
-        )
+        return try {
+            val snapshot = charitiesCollection.get().await()
+
+            val categories = snapshot.documents
+                .flatMap { document ->
+                    (document.get("tags") as? List<*>)?.mapNotNull { it as? String } ?: emptyList()
+                }
+                .distinct()
+                .sorted()
+
+            Result.success(listOf("Near Me") + categories)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 
     override suspend fun getCharities(): Result<List<Charity>> {
-        return Result.success(charities)
+        return try {
+            val snapshot = charitiesCollection.get().await()
+
+            val charities = snapshot.documents.mapNotNull { document ->
+                document.toCharity()
+            }
+
+            Result.success(charities)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 
     override suspend fun getCharityById(id: String): Result<Charity> {
-        val charity = charities.find { it.id == id }
-        return if (charity != null) {
-            Result.success(charity)
-        } else {
-            Result.failure(Exception("Charity not found"))
+        return try {
+            val document = charitiesCollection.document(id).get().await()
+            val charity = document.toCharity()
+
+            if (charity != null) {
+                Result.success(charity)
+            } else {
+                Result.failure(Exception("Charity not found"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
         }
+    }
+
+    private fun DocumentSnapshot.toCharity(): Charity? {
+        val name = getString("name") ?: return null
+        val location = getString("location") ?: ""
+        val description = getString("description") ?: ""
+        val tags = (get("tags") as? List<*>)?.mapNotNull { it as? String } ?: emptyList()
+        val distance = getString("distance") ?: ""
+        val impact = getString("impact") ?: ""
+        val number = getString("number") ?: ""
+        val email = getString("email") ?: ""
+        val website = getString("website") ?: ""
+        val isFeatured = getBoolean("isFeatured") ?: false
+
+        return Charity(
+            id = id,
+            name = name,
+            location = location,
+            description = description,
+            tags = tags,
+            distance = distance,
+            impact = impact,
+            number = number,
+            email = email,
+            website = website,
+            isFeatured = isFeatured
+        )
     }
 }
