@@ -11,7 +11,6 @@ interface ProductRepository {
     suspend fun getProductsByStyle(tag: String): Result<List<Product>>
     suspend fun getTrendingProducts(): Result<List<Product>>
     suspend fun getTags(): Result<List<String>>
-    suspend fun deleteProduct(productId: String): Result<Boolean>
-
+    suspend fun deleteProduct(productId: String, ownerId: String): Result<Boolean>
 
 }

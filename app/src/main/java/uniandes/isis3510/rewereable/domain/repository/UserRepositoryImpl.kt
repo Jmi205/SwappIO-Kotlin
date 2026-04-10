@@ -128,7 +128,6 @@ class UserRepositoryImpl : UserRepository {
         }
     }
 
-    // Dentro de UserRepositoryImpl.kt
     override suspend fun addToListings(userId: String, productId: String): Result<Boolean> {
         return try {
             firestore.collection("users").document(userId)

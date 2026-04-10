@@ -43,8 +43,14 @@ import uniandes.isis3510.rewereable.ui.screens.seller.SellerProfileScreen
 import uniandes.isis3510.rewereable.ui.screens.seller.SellerProfileViewModel
 import uniandes.isis3510.rewereable.ui.theme.SwappIOTheme
 import uniandes.isis3510.rewereable.domain.repository.DropOffRepositoryImpl
+import uniandes.isis3510.rewereable.ui.screens.chats.ChatListScreen
+import uniandes.isis3510.rewereable.ui.screens.chats.ChatListViewModel
 import uniandes.isis3510.rewereable.ui.screens.map.MapDropOffScreen
 import uniandes.isis3510.rewereable.ui.screens.map.MapDropOffViewModel
+import uniandes.isis3510.rewereable.domain.repository.ChatRepositoryImpl
+import uniandes.isis3510.rewereable.ui.screens.chat.ChatDetailScreen
+import uniandes.isis3510.rewereable.ui.screens.chat.ChatDetailViewModel
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -62,6 +68,8 @@ class MainActivity : ComponentActivity() {
         val charityRepository = CharityRepositoryImpl()
         val donateViewModel = DonateViewModel(charityRepository)
 
+        val chatRepository = ChatRepositoryImpl()
+
         val dropOffRepository = DropOffRepositoryImpl()
 
         setContent {
@@ -77,7 +85,7 @@ class MainActivity : ComponentActivity() {
                     Screen.Login.route
                 }
 
-                val showBottomBar = currentRoute != Screen.Login.route && currentRoute != Screen.Register.route
+                val showBottomBar = currentRoute != Screen.Login.route && currentRoute != Screen.Register.route && currentRoute != Screen.ChatDetail.route
 
                 Log.d("MainActivity", "Current User: ${auth.currentUser?.uid}")
                 Log.d("Main Activity", "Start Destination: $startDestination")
@@ -102,7 +110,7 @@ class MainActivity : ComponentActivity() {
                              LoginScreen(
                                  viewModel = authViewModel,
                                  onNavigateToHome = {
-                                     // PopUpTo limpia el historial para que no puedan volver al login con el botón 'Atrás'
+
                                      navController.navigate(Screen.Home.route) {
                                          popUpTo("login") { inclusive = true }
                                      }
@@ -160,6 +168,43 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
+                        composable(Screen.ChatList.route){
+
+                            val chatListViewModel: ChatListViewModel = viewModel(
+                                factory = ChatListViewModel.provideFactory(chatRepository)
+                            )
+
+                            ChatListScreen(
+                                viewModel = chatListViewModel,
+                                onBackClick = {
+                                    navController.popBackStack()
+                                },
+                                onChatClick = { chatId ->
+
+                                    navController.navigate(Screen.ChatDetail.route.replace("{chatId}", chatId))
+
+                                }
+                            )
+
+                        }
+
+                        composable(Screen.ChatDetail.route) { backStackEntry ->
+                            val chatId = backStackEntry.arguments?.getString("chatId") ?: ""
+
+                            val chatDetailViewModel: ChatDetailViewModel = viewModel(
+                                factory = ChatDetailViewModel.provideFactory(chatRepository, chatId)
+                            )
+
+                            ChatDetailScreen(
+                                viewModel = chatDetailViewModel,
+                                onBackClick = { navController.popBackStack() },
+                                onProductClick = { productId ->
+                                    navController.navigate(Screen.Product.route.replace("{productId}", productId))
+
+                                }
+                            )
+                        }
+
                         composable(Screen.Sell.route) {
                             /* SellScreen() */
                         }
@@ -168,7 +213,7 @@ class MainActivity : ComponentActivity() {
                             /* InboxScreen() */
                         }
 
-                        composable("seller/{sellerId}") { backStackEntry ->
+                        composable(Screen.Seller.route) { backStackEntry ->
                             val sellerId = backStackEntry.arguments?.getString("sellerId") ?: ""
 
                             val sellerViewModel: SellerProfileViewModel = viewModel(
@@ -193,6 +238,7 @@ class MainActivity : ComponentActivity() {
                                 factory = ProductDetailViewModel.provideFactory(
                                     productRepository = productRepository,
                                     userRepository = userRepository,
+                                    chatRepository = chatRepository,
                                     productId = productId
                                 )
                             )
@@ -200,12 +246,17 @@ class MainActivity : ComponentActivity() {
                             ProductDetailScreen(
                                 viewModel = detailViewModel,
                                 onBackClick = { navController.popBackStack() },
-                                onSellerClick = {sellerId ->
+                                onSellerClick = { sellerId ->
                                     navController.navigate(Screen.Seller.route.replace("{sellerId}", sellerId))
+
                                 },
                                 onProductClick = { newProductId ->
                                     val route = Screen.Product.route.replace("{productId}", newProductId)
                                     navController.navigate(route)
+                                },
+
+                                onNavigateToChat = { chatId ->
+                                    navController.navigate(Screen.ChatDetail.route.replace("{chatId}", chatId))
                                 }
                             )
                         }

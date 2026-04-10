@@ -28,4 +28,11 @@ sealed class Screen(val route: String) {
     object CharityDetail : Screen("charity_details/{charityId}")
 
     object DropOffMap : Screen("dropoff_map")
+
+    object ChatList : Screen("chat_list")
+
+    object ChatDetail : Screen("chat_detail/{chatId}")
+
+
+
 }

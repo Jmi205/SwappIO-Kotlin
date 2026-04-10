@@ -26,6 +26,9 @@ import androidx.compose.ui.unit.sp
 import uniandes.isis3510.rewereable.domain.model.Product
 import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.layout.ContentScale
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import coil.compose.AsyncImage
 import uniandes.isis3510.rewereable.ui.components.ProductCard
 
@@ -34,6 +37,23 @@ fun HomeScreen(
     viewModel: HomeViewModel,
     onNavigateToDetails: (String) -> Unit
 ) {
+
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                viewModel.loadHomeData()
+            }
+        }
+
+        lifecycleOwner.lifecycle.addObserver(observer)
+
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
     val uiState by viewModel.uiState.collectAsState()
 
     Box(

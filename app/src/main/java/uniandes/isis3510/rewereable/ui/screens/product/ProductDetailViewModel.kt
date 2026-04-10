@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import uniandes.isis3510.rewereable.domain.model.Product
 import uniandes.isis3510.rewereable.domain.model.User
+import uniandes.isis3510.rewereable.domain.repository.ChatRepository
 import uniandes.isis3510.rewereable.domain.repository.ProductRepository
 import uniandes.isis3510.rewereable.domain.repository.UserRepository
 
@@ -28,6 +29,7 @@ sealed class DetailUiState {
 class ProductDetailViewModel(
     private val productRepository: ProductRepository,
     private val userRepository: UserRepository,
+    private val chatRepository: ChatRepository,
     private val productId: String
 ) : ViewModel() {
 
@@ -45,18 +47,16 @@ class ProductDetailViewModel(
             _uiState.value = DetailUiState.Loading
 
             val productResult = productRepository.getProductById(productId)
-            val currentUserId = auth.currentUser?.uid // ¡NUEVO!
+            val currentUserId = auth.currentUser?.uid
 
             if (productResult.isSuccess) {
                 val product = productResult.getOrNull()!!
                 val ownerResult = userRepository.getUserProfile(product.ownerId)
 
-                // ¡NUEVO! Cargamos sugerencias (ej. productos trending, excluyendo el actual)
                 val suggestionsResult = productRepository.getTrendingProducts()
                 val suggestions = suggestionsResult.getOrDefault(emptyList())
                     .filter { it.id != productId }
-                    .take(5) // Tomamos solo 5 sugerencias
-
+                    .take(5)
                 val owner = if (ownerResult.isSuccess) {
                     ownerResult.getOrNull()!!
                 } else {
@@ -74,15 +74,57 @@ class ProductDetailViewModel(
     }
 
     fun deleteProduct(onSuccess: () -> Unit) {
-        viewModelScope.launch {
-            _uiState.value = DetailUiState.Loading
+        val currentState = _uiState.value
+        if (currentState is DetailUiState.Success) {
+            val currentUserId = currentState.currentUserId ?: return
 
-            val result = productRepository.deleteProduct(productId)
+            viewModelScope.launch {
+                _uiState.value = DetailUiState.Loading
 
-            if (result.isSuccess) {
-                onSuccess()
-            } else {
-                _uiState.value = DetailUiState.Error("No se pudo borrar el producto. Revisa tu conexión.")
+                val result = productRepository.deleteProduct(productId, currentUserId)
+
+                if (result.isSuccess) {
+                    onSuccess()
+                } else {
+                    _uiState.value = DetailUiState.Error("No se pudo borrar el producto. Revisa tu conexión.")
+                }
+            }
+        }
+    }
+
+    fun startChatWithSeller(onChatCreated: (String) -> Unit) {
+        val currentState = _uiState.value
+        if (currentState is DetailUiState.Success) {
+            val currentUserId = currentState.currentUserId ?: return
+            val seller = currentState.owner
+            val product = currentState.product
+
+            if (currentUserId == seller.id) return
+
+            viewModelScope.launch {
+                val currentUserResult = userRepository.getUserProfile(currentUserId)
+                val currentUser = currentUserResult.getOrNull()
+                val currentUserName = currentUser?.let { "${it.name} ${it.lastname}" } ?: "Comprador"
+                val sellerFullName = "${seller.name} ${seller.lastname}"
+
+                val result = chatRepository.createChatChannel(
+                    currentUserId = currentUserId,
+                    sellerId = seller.id,
+                    currentUserName = currentUserName,
+                    sellerName = sellerFullName,
+                    currentUserPic = currentUser?.profilePictureUrl,
+                    sellerPic = seller.profilePictureUrl,
+                    productId = product.id,
+                    productName = product.name,
+                    productPrice = product.price,
+                    productImage = product.images.firstOrNull()
+                )
+
+                if (result.isSuccess) {
+                    onChatCreated(result.getOrNull()!!)
+                } else {
+                    _uiState.value = DetailUiState.Error("No se pudo iniciar el chat.")
+                }
             }
         }
     }
@@ -91,11 +133,12 @@ class ProductDetailViewModel(
         fun provideFactory(
             productRepository: ProductRepository,
             userRepository: UserRepository,
+            chatRepository: ChatRepository, // ¡NUEVO!
             productId: String
         ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return ProductDetailViewModel(productRepository, userRepository, productId) as T
+                return ProductDetailViewModel(productRepository, userRepository, chatRepository, productId) as T
             }
         }
     }
