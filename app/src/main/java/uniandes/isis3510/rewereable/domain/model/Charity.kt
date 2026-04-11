@@ -6,10 +6,12 @@ data class Charity(
     val location: String,
     val description: String,
     val tags: List<String>,
-    val distance: String,
+    val distance: String = "",
     val impact: String,
     val number: String,
     val email: String,
     val website: String,
-    val isFeatured: Boolean = false
+    val isFeatured: Boolean = false,
+    val latitude: Double,
+    val longitude: Double
 )

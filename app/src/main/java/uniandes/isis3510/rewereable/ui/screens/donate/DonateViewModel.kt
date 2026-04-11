@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import uniandes.isis3510.rewereable.domain.model.Charity
 import uniandes.isis3510.rewereable.domain.repository.CharityRepository
+import kotlin.math.pow
 
 sealed class DonateUiState {
     object Loading : DonateUiState()
@@ -32,6 +33,64 @@ class DonateViewModel(
     val uiState: StateFlow<DonateUiState> = _uiState.asStateFlow()
 
     private var allCharities: List<Charity> = emptyList()
+    private var userLatitude: Double? = null
+    private var userLongitude: Double? = null
+
+    fun updateUserLocation(lat: Double, lng: Double) {
+        userLatitude = lat
+        userLongitude = lng
+        refreshFilteredState()
+    }
+    private fun refreshFilteredState() {
+        val currentState = _uiState.value
+        if (currentState is DonateUiState.Success) {
+            val charitiesWithDistance = applyDistanceToCharities(allCharities)
+
+            allCharities = charitiesWithDistance
+
+            val filtered = filterCharities(
+                charities = charitiesWithDistance,
+                query = currentState.searchQuery,
+                selectedCategory = currentState.selectedCategory
+            )
+
+            _uiState.value = currentState.copy(
+                charities = charitiesWithDistance,
+                filteredCharities = filtered,
+                featuredCharity = charitiesWithDistance.firstOrNull { it.isFeatured }
+            )
+        }
+    }
+
+    private fun applyDistanceToCharities(charities: List<Charity>): List<Charity> {
+        val lat = userLatitude
+        val lng = userLongitude
+
+        if (lat == null || lng == null) return charities
+
+        return charities
+            .map { charity ->
+                val distanceKm = distanceKm(lat, lng, charity.latitude, charity.longitude)
+                charity.copy(distance = String.format("%.1f km away", distanceKm))
+            }
+            .sortedBy {
+                distanceKm(lat, lng, it.latitude, it.longitude)
+            }
+    }
+
+    private fun distanceKm(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
+        val earthRadius = 6371.0
+        val dLat = Math.toRadians(lat2 - lat1)
+        val dLon = Math.toRadians(lon2 - lon1)
+
+        val a = kotlin.math.sin(dLat / 2).pow(2.0) +
+                kotlin.math.cos(Math.toRadians(lat1)) *
+                kotlin.math.cos(Math.toRadians(lat2)) *
+                kotlin.math.sin(dLon / 2).pow(2.0)
+
+        val c = 2 * kotlin.math.atan2(kotlin.math.sqrt(a), kotlin.math.sqrt(1 - a))
+        return earthRadius * c
+    }
 
     init {
         loadDonateData()
@@ -45,7 +104,7 @@ class DonateViewModel(
             val charitiesResult = charityRepository.getCharities()
 
             if (categoriesResult.isSuccess && charitiesResult.isSuccess) {
-                allCharities = charitiesResult.getOrDefault(emptyList())
+                allCharities = applyDistanceToCharities(charitiesResult.getOrDefault(emptyList()))
                 val categories = categoriesResult.getOrDefault(emptyList())
                 val defaultCategory = "Children"
 
