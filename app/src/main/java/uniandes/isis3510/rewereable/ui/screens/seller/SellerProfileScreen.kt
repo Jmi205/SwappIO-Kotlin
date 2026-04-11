@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import uniandes.isis3510.rewereable.domain.model.User
 import uniandes.isis3510.rewereable.ui.components.ProductCard
+import uniandes.isis3510.rewereable.util.AnalyticsHelper
 
 @Composable
 fun SellerProfileScreen(
@@ -31,6 +32,10 @@ fun SellerProfileScreen(
     onProductClick: (String) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
+
+    LaunchedEffect(Unit) {
+        AnalyticsHelper.logScreenView("Seller")
+    }
 
     Box(
         modifier = Modifier

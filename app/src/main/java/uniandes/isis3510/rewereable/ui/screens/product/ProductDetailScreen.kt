@@ -38,6 +38,7 @@ import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
+import uniandes.isis3510.rewereable.util.AnalyticsHelper
 
 @Composable
 fun ProductDetailScreen(
@@ -49,12 +50,25 @@ fun ProductDetailScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
+    LaunchedEffect(Unit) {
+        AnalyticsHelper.logScreenView("ProductDetail")
+    }
+
     Box(modifier = Modifier.fillMaxSize().background(Color(0xFFF5F8F8))) {
         when (uiState) {
             is DetailUiState.Loading -> CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
             is DetailUiState.Error -> Text("Error", modifier = Modifier.align(Alignment.Center))
             is DetailUiState.Success -> {
                 val data = uiState as DetailUiState.Success
+
+                LaunchedEffect(data.product.id) {
+                    AnalyticsHelper.logProductView(
+                        productId = data.product.id,
+                        styles = data.product.styleTags,
+                        price = data.product.price
+                    )
+                }
+
                 ProductDetailContent(
                     product = data.product,
                     owner = data.owner,
@@ -65,6 +79,11 @@ fun ProductDetailScreen(
                     onProductClick = onProductClick,
                     onDeleteConfirm = { viewModel.deleteProduct(onSuccess = onBackClick) },
                     onStartChatClick = {
+
+                        AnalyticsHelper.logStartChat(
+                            productId = data.product.id,
+                            sellerId = data.owner.id
+                        )
                         viewModel.startChatWithSeller(onChatCreated = onNavigateToChat)
                     }
                 )

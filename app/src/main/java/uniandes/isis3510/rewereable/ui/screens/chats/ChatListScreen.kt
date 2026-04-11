@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import uniandes.isis3510.rewereable.domain.model.ChatChannel
 import uniandes.isis3510.rewereable.ui.theme.GlassBackground
+import uniandes.isis3510.rewereable.util.AnalyticsHelper
 import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.Calendar
@@ -38,6 +39,10 @@ fun ChatListScreen(
     onChatClick: (String) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
+
+    LaunchedEffect(Unit) {
+        AnalyticsHelper.logScreenView("ChatList")
+    }
 
     val searchGlassModifier = Modifier
         .background(Color.White.copy(alpha = 0.6f), RoundedCornerShape(12.dp))
@@ -262,7 +267,6 @@ fun ChatCard(
     }
 }
 
-// Función inteligente para formatear la fecha
 fun formatChatTime(timestamp: Long): String {
     if (timestamp == 0L) return ""
 
@@ -270,21 +274,17 @@ fun formatChatTime(timestamp: Long): String {
     val now = Calendar.getInstance()
 
     return when {
-        // Mismo día
         messageDate.get(Calendar.YEAR) == now.get(Calendar.YEAR) &&
                 messageDate.get(Calendar.DAY_OF_YEAR) == now.get(Calendar.DAY_OF_YEAR) -> {
             SimpleDateFormat("hh:mm a", Locale.getDefault()).format(messageDate.time)
         }
-        // Día anterior
         messageDate.get(Calendar.YEAR) == now.get(Calendar.YEAR) &&
                 messageDate.get(Calendar.DAY_OF_YEAR) == now.get(Calendar.DAY_OF_YEAR) - 1 -> {
             "Ayer"
         }
-        // Misma semana
         now.timeInMillis - timestamp < 7 * 24 * 60 * 60 * 1000L -> {
             SimpleDateFormat("EEEE", Locale("es", "ES")).format(messageDate.time).replaceFirstChar { it.uppercase() }
         }
-        // Más antiguo
         else -> {
             SimpleDateFormat("dd MMM", Locale("es", "ES")).format(messageDate.time)
         }

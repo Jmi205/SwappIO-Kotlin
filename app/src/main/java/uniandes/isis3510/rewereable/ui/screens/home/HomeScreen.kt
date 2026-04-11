@@ -31,12 +31,17 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import coil.compose.AsyncImage
 import uniandes.isis3510.rewereable.ui.components.ProductCard
+import uniandes.isis3510.rewereable.util.AnalyticsHelper
 
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel,
     onNavigateToDetails: (String) -> Unit
 ) {
+
+    LaunchedEffect(Unit) {
+        AnalyticsHelper.logScreenView("Home")
+    }
 
     val lifecycleOwner = LocalLifecycleOwner.current
 

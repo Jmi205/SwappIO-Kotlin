@@ -12,6 +12,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -25,6 +26,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import uniandes.isis3510.rewereable.domain.model.User
 import uniandes.isis3510.rewereable.ui.components.ActivityOptionCard
+import uniandes.isis3510.rewereable.util.AnalyticsHelper
 
 val PrimaryColor = Color(0xFF077288)
 val GlassBackground = Color.White.copy(alpha = 0.65f)
@@ -39,6 +41,10 @@ fun ProfileScreen(
     onLogout: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
+
+    LaunchedEffect(Unit) {
+        AnalyticsHelper.logScreenView("Profile")
+    }
 
     Box(
         modifier = Modifier

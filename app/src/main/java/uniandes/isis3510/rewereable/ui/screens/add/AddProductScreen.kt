@@ -39,6 +39,7 @@ import com.google.maps.android.compose.rememberCameraPositionState
 import uniandes.isis3510.rewereable.ui.theme.GlassBackground
 import android.content.Context
 import androidx.core.content.FileProvider
+import uniandes.isis3510.rewereable.util.AnalyticsHelper
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -70,6 +71,10 @@ fun AddProductScreen(
     onSuccess: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
+
+    LaunchedEffect(Unit) {
+        AnalyticsHelper.logScreenView("AddProduct")
+    }
 
     val title by viewModel.title.collectAsState()
     val brand by viewModel.brand.collectAsState()

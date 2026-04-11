@@ -20,6 +20,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import uniandes.isis3510.rewereable.ui.components.GlassTextField
+import uniandes.isis3510.rewereable.util.AnalyticsHelper
 
 @Composable
 fun LoginScreen(
@@ -28,6 +29,10 @@ fun LoginScreen(
     onNavigateToRegister: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
+
+    LaunchedEffect(Unit) {
+        AnalyticsHelper.logScreenView("Login")
+    }
 
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
