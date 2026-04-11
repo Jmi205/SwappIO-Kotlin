@@ -43,6 +43,11 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.core.content.ContextCompat
+import com.google.android.gms.location.LocationServices
+import com.google.maps.android.compose.MapProperties
 
 @OptIn(ExperimentalMaterial3Api::class)
 
@@ -78,7 +83,47 @@ fun AddProductScreen(
 
     val styleTags by viewModel.styleTags.collectAsState()
 
+
+    val bogotaCenter = LatLng(4.6097, -74.0817)
+
+    val cameraPositionState = rememberCameraPositionState {
+        position = CameraPosition.fromLatLngZoom(bogotaCenter, 11f)
+    }
+
+    LaunchedEffect(selectedLatLng) {
+        selectedLatLng?.let { latLng ->
+            cameraPositionState.position = CameraPosition.fromLatLngZoom(latLng, 15f)
+        }
+    }
+
     val context = LocalContext.current
+
+    val fusedLocationClient = remember {
+        LocationServices.getFusedLocationProviderClient(context)
+    }
+
+    val hasLocationPermission = ContextCompat.checkSelfPermission(
+        context,
+        Manifest.permission.ACCESS_FINE_LOCATION
+    ) == PackageManager.PERMISSION_GRANTED
+
+    val locationPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            fusedLocationClient.lastLocation.addOnSuccessListener { locationResult ->
+                if (locationResult != null) {
+                    val userLatLng = LatLng(locationResult.latitude, locationResult.longitude)
+                    viewModel.selectedLatLng.value = userLatLng
+                    viewModel.location.value = "Current area"
+                } else {
+                    Toast.makeText(context, "Could not get current location", Toast.LENGTH_SHORT).show()
+                }
+            }
+        } else {
+            Toast.makeText(context, "Location permission denied", Toast.LENGTH_SHORT).show()
+        }
+    }
 
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickMultipleVisualMedia(maxItems = 3)
@@ -109,13 +154,6 @@ fun AddProductScreen(
                 Toast.makeText(context, "Máximo 3 fotos", Toast.LENGTH_SHORT).show()
             }
         }
-    }
-
-
-    val bogotaCenter = LatLng(4.6097, -74.0817)
-
-    val cameraPositionState = rememberCameraPositionState {
-        position = CameraPosition.fromLatLngZoom(bogotaCenter, 11f)
     }
 
     //LaunchedEffect(uiState) {
@@ -393,6 +431,9 @@ fun AddProductScreen(
                         GoogleMap(
                             modifier = Modifier.fillMaxSize(),
                             cameraPositionState = cameraPositionState,
+                            properties = MapProperties(
+                                isMyLocationEnabled = hasLocationPermission
+                            ),
                             onMapClick = { newLatLng ->
                                 viewModel.selectedLatLng.value = newLatLng
                             }
@@ -416,6 +457,30 @@ fun AddProductScreen(
                         color = Color.Gray,
                         modifier = Modifier.padding(start = 4.dp)
                     )
+                }
+
+                OutlinedButton(
+                    onClick = {
+                        if (hasLocationPermission) {
+                            fusedLocationClient.lastLocation.addOnSuccessListener { locationResult ->
+                                if (locationResult != null) {
+                                    val userLatLng = LatLng(locationResult.latitude, locationResult.longitude)
+                                    viewModel.selectedLatLng.value = userLatLng
+                                    viewModel.location.value = "Current area"
+                                } else {
+                                    Toast.makeText(context, "Could not get current location", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        } else {
+                            locationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Icon(Icons.Default.MyLocation, contentDescription = null)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Use my location")
                 }
 
                 // Botón de Enviar

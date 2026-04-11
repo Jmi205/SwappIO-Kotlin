@@ -69,6 +69,7 @@ dependencies {
     implementation("com.google.maps.android:maps-compose:8.2.2")
     implementation("com.google.android.gms:play-services-maps:20.0.0")
     implementation("com.google.firebase:firebase-storage:20.3.0")
+    implementation("com.google.android.gms:play-services-location:21.3.0")
 
 
 }
