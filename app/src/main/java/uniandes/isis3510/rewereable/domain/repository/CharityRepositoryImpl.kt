@@ -62,7 +62,8 @@ class CharityRepositoryImpl(
         val location = getString("location") ?: ""
         val description = getString("description") ?: ""
         val tags = (get("tags") as? List<*>)?.mapNotNull { it as? String } ?: emptyList()
-        val distance = getString("distance") ?: ""
+        val latitude = getDouble("latitude") ?: return null
+        val longitude = getDouble("longitude") ?: return null
         val impact = getString("impact") ?: ""
         val number = getString("number") ?: ""
         val email = getString("email") ?: ""
@@ -75,12 +76,13 @@ class CharityRepositoryImpl(
             location = location,
             description = description,
             tags = tags,
-            distance = distance,
             impact = impact,
             number = number,
             email = email,
             website = website,
-            isFeatured = isFeatured
+            isFeatured = isFeatured,
+            latitude = latitude,
+            longitude = longitude
         )
     }
 }
