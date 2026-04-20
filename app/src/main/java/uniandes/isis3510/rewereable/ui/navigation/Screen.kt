@@ -33,6 +33,8 @@ sealed class Screen(val route: String) {
 
     object ChatDetail : Screen("chat_detail/{chatId}")
 
+    object Checkout: Screen("checkout/{productId}")
+
 
 
 }

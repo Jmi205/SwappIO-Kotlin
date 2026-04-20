@@ -48,8 +48,12 @@ import uniandes.isis3510.rewereable.ui.screens.chats.ChatListViewModel
 import uniandes.isis3510.rewereable.ui.screens.map.MapDropOffScreen
 import uniandes.isis3510.rewereable.ui.screens.map.MapDropOffViewModel
 import uniandes.isis3510.rewereable.domain.repository.ChatRepositoryImpl
+import uniandes.isis3510.rewereable.domain.repository.CheckoutRepository
+import uniandes.isis3510.rewereable.domain.repository.CheckoutRepositoryImpl
 import uniandes.isis3510.rewereable.ui.screens.chat.ChatDetailScreen
 import uniandes.isis3510.rewereable.ui.screens.chat.ChatDetailViewModel
+import uniandes.isis3510.rewereable.ui.screens.checkout.CheckoutScreen
+import uniandes.isis3510.rewereable.ui.screens.checkout.CheckoutViewModel
 
 
 class MainActivity : ComponentActivity() {
@@ -67,6 +71,7 @@ class MainActivity : ComponentActivity() {
 
         val charityRepository = CharityRepositoryImpl()
         val donateViewModel = DonateViewModel(charityRepository)
+        val checkoutRepository = CheckoutRepositoryImpl(FirebaseFirestore.getInstance(), auth)
 
         val chatRepository = ChatRepositoryImpl()
 
@@ -107,34 +112,35 @@ class MainActivity : ComponentActivity() {
                         modifier = Modifier.padding(innerPadding)
                     ) {
                         composable(Screen.Login.route) {
-                             LoginScreen(
-                                 viewModel = authViewModel,
-                                 onNavigateToHome = {
+                            LoginScreen(
+                                viewModel = authViewModel,
+                                onNavigateToHome = {
 
-                                     navController.navigate(Screen.Home.route) {
-                                         popUpTo("login") { inclusive = true }
-                                     }
-                                 },
-                                 onNavigateToRegister = { navController.navigate("register") }
-                             )
+                                    navController.navigate(Screen.Home.route) {
+                                        popUpTo("login") { inclusive = true }
+                                    }
+                                },
+                                onNavigateToRegister = { navController.navigate("register") }
+                            )
                         }
 
                         composable(Screen.Register.route) {
-                             RegisterScreen(
-                                 viewModel = authViewModel,
-                                 onNavigateToHome = {
-                                     navController.navigate(Screen.Home.route) {
-                                         popUpTo("login") { inclusive = true }
-                                     }
-                                 },
-                                 onNavigateToLogin = { navController.popBackStack() }
-                             )
+                            RegisterScreen(
+                                viewModel = authViewModel,
+                                onNavigateToHome = {
+                                    navController.navigate(Screen.Home.route) {
+                                        popUpTo("login") { inclusive = true }
+                                    }
+                                },
+                                onNavigateToLogin = { navController.popBackStack() }
+                            )
                         }
                         composable(Screen.Home.route) {
                             HomeScreen(
                                 viewModel = homeViewModel,
                                 onNavigateToDetails = { productId ->
-                                    val routeConIdReal = Screen.Product.route.replace("{productId}", productId)
+                                    val routeConIdReal =
+                                        Screen.Product.route.replace("{productId}", productId)
                                     navController.navigate(routeConIdReal)
                                 }
                             )
@@ -142,7 +148,10 @@ class MainActivity : ComponentActivity() {
 
                         composable(Screen.Profile.route) {
                             val profileViewModel: ProfileViewModel = viewModel(
-                                factory = ProfileViewModel.provideFactory(userRepository, authRepository)
+                                factory = ProfileViewModel.provideFactory(
+                                    userRepository,
+                                    authRepository
+                                )
                             )
 
                             ProfileScreen(
@@ -168,7 +177,7 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        composable(Screen.ChatList.route){
+                        composable(Screen.ChatList.route) {
 
                             val chatListViewModel: ChatListViewModel = viewModel(
                                 factory = ChatListViewModel.provideFactory(chatRepository)
@@ -181,7 +190,12 @@ class MainActivity : ComponentActivity() {
                                 },
                                 onChatClick = { chatId ->
 
-                                    navController.navigate(Screen.ChatDetail.route.replace("{chatId}", chatId))
+                                    navController.navigate(
+                                        Screen.ChatDetail.route.replace(
+                                            "{chatId}",
+                                            chatId
+                                        )
+                                    )
 
                                 }
                             )
@@ -199,7 +213,12 @@ class MainActivity : ComponentActivity() {
                                 viewModel = chatDetailViewModel,
                                 onBackClick = { navController.popBackStack() },
                                 onProductClick = { productId ->
-                                    navController.navigate(Screen.Product.route.replace("{productId}", productId))
+                                    navController.navigate(
+                                        Screen.Product.route.replace(
+                                            "{productId}",
+                                            productId
+                                        )
+                                    )
 
                                 }
                             )
@@ -217,14 +236,23 @@ class MainActivity : ComponentActivity() {
                             val sellerId = backStackEntry.arguments?.getString("sellerId") ?: ""
 
                             val sellerViewModel: SellerProfileViewModel = viewModel(
-                                factory = SellerProfileViewModel.provideFactory(userRepository, productRepository, sellerId)
+                                factory = SellerProfileViewModel.provideFactory(
+                                    userRepository,
+                                    productRepository,
+                                    sellerId
+                                )
                             )
 
                             SellerProfileScreen(
                                 viewModel = sellerViewModel,
                                 onBackClick = { navController.popBackStack() },
                                 onProductClick = { productId ->
-                                    navController.navigate(Screen.Product.route.replace("{productId}", productId))
+                                    navController.navigate(
+                                        Screen.Product.route.replace(
+                                            "{productId}",
+                                            productId
+                                        )
+                                    )
                                 }
                             )
                         }
@@ -247,16 +275,35 @@ class MainActivity : ComponentActivity() {
                                 viewModel = detailViewModel,
                                 onBackClick = { navController.popBackStack() },
                                 onSellerClick = { sellerId ->
-                                    navController.navigate(Screen.Seller.route.replace("{sellerId}", sellerId))
+                                    navController.navigate(
+                                        Screen.Seller.route.replace(
+                                            "{sellerId}",
+                                            sellerId
+                                        )
+                                    )
 
                                 },
                                 onProductClick = { newProductId ->
-                                    val route = Screen.Product.route.replace("{productId}", newProductId)
+                                    val route =
+                                        Screen.Product.route.replace("{productId}", newProductId)
                                     navController.navigate(route)
                                 },
 
                                 onNavigateToChat = { chatId ->
-                                    navController.navigate(Screen.ChatDetail.route.replace("{chatId}", chatId))
+                                    navController.navigate(
+                                        Screen.ChatDetail.route.replace(
+                                            "{chatId}",
+                                            chatId
+                                        )
+                                    )
+                                },
+                                onBuyClick = { productIdToBuy ->
+                                    navController.navigate(
+                                        Screen.Checkout.route.replace(
+                                            "{productId}",
+                                            productIdToBuy
+                                        )
+                                    )
                                 }
                             )
                         }
@@ -293,50 +340,80 @@ class MainActivity : ComponentActivity() {
 
                         composable(Screen.Favorites.route) {
                             val favoritesViewModel: UserActivityViewModel = viewModel(
-                                factory = UserActivityViewModel.provideFactory(userRepository, productRepository, ActivityType.FAVORITES)
+                                factory = UserActivityViewModel.provideFactory(
+                                    userRepository,
+                                    productRepository,
+                                    ActivityType.FAVORITES
+                                )
                             )
                             UserActivityScreen(
                                 title = "Favorites",
                                 viewModel = favoritesViewModel,
                                 onBackClick = { navController.popBackStack() },
                                 onProductClick = { productId ->
-                                    navController.navigate(Screen.Product.route.replace("{productId}", productId))
+                                    navController.navigate(
+                                        Screen.Product.route.replace(
+                                            "{productId}",
+                                            productId
+                                        )
+                                    )
                                 }
                             )
                         }
 
                         composable(Screen.Listings.route) {
                             val listingsViewModel: UserActivityViewModel = viewModel(
-                                factory = UserActivityViewModel.provideFactory(userRepository, productRepository, ActivityType.LISTINGS)
+                                factory = UserActivityViewModel.provideFactory(
+                                    userRepository,
+                                    productRepository,
+                                    ActivityType.LISTINGS
+                                )
                             )
                             UserActivityScreen(
                                 title = "My Listings",
                                 viewModel = listingsViewModel,
                                 onBackClick = { navController.popBackStack() },
                                 onProductClick = { productId ->
-                                    navController.navigate(Screen.Product.route.replace("{productId}", productId))
+                                    navController.navigate(
+                                        Screen.Product.route.replace(
+                                            "{productId}",
+                                            productId
+                                        )
+                                    )
                                 }
                             )
                         }
 
                         composable(Screen.Purchases.route) {
                             val purchasesViewModel: UserActivityViewModel = viewModel(
-                                factory = UserActivityViewModel.provideFactory(userRepository, productRepository, ActivityType.PURCHASES)
+                                factory = UserActivityViewModel.provideFactory(
+                                    userRepository,
+                                    productRepository,
+                                    ActivityType.PURCHASES
+                                )
                             )
                             UserActivityScreen(
                                 title = "My Purchases",
                                 viewModel = purchasesViewModel,
                                 onBackClick = { navController.popBackStack() },
                                 onProductClick = { productId ->
-                                    navController.navigate(Screen.Product.route.replace("{productId}", productId))
+                                    navController.navigate(
+                                        Screen.Product.route.replace(
+                                            "{productId}",
+                                            productId
+                                        )
+                                    )
                                 }
                             )
                         }
 
-                        composable(Screen.Add.route){
+                        composable(Screen.Add.route) {
 
                             val addProductViewModel: AddProductViewModel = viewModel(
-                                factory = AddProductViewModel.provideFactory(productRepository, userRepository)
+                                factory = AddProductViewModel.provideFactory(
+                                    productRepository,
+                                    userRepository
+                                )
                             )
 
                             AddProductScreen(
@@ -345,6 +422,30 @@ class MainActivity : ComponentActivity() {
                                 onSuccess = {
                                     navController.navigate(Screen.Listings.route) {
                                         popUpTo(Screen.Home.route)
+                                    }
+                                }
+                            )
+                        }
+
+                        composable(Screen.Checkout.route) { backStackEntry ->
+                            val productId = backStackEntry.arguments?.getString("productId")
+                                ?: return@composable
+
+                            val checkoutViewModel: CheckoutViewModel = viewModel(
+                                factory = CheckoutViewModel.provideFactory(
+                                    productId = productId,
+                                    productRepository = productRepository,
+                                    userRepository = userRepository,
+                                    checkoutRepository = checkoutRepository
+                                )
+                            )
+
+                            CheckoutScreen(
+                                viewModel = checkoutViewModel,
+                                onBackClick = { navController.popBackStack() },
+                                onSuccess = {
+                                    navController.navigate(Screen.Purchases.route) {
+                                        popUpTo(Screen.Home.route) { inclusive = false }
                                     }
                                 }
                             )

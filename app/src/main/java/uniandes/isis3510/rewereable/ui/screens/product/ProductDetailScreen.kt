@@ -46,7 +46,8 @@ fun ProductDetailScreen(
     onBackClick: () -> Unit,
     onSellerClick: (String) -> Unit,
     onProductClick: (String) -> Unit,
-    onNavigateToChat: (String) -> Unit
+    onNavigateToChat: (String) -> Unit,
+    onBuyClick: (String) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -85,7 +86,8 @@ fun ProductDetailScreen(
                             sellerId = data.owner.id
                         )
                         viewModel.startChatWithSeller(onChatCreated = onNavigateToChat)
-                    }
+                    },
+                    onBuyClick = { onBuyClick(data.product.id) }
                 )
             }
         }
@@ -104,17 +106,16 @@ private fun ProductDetailContent(
     onSellerClick: (String) -> Unit,
     onProductClick: (String) -> Unit,
     onDeleteConfirm: () -> Unit,
-    onStartChatClick: () -> Unit
+    onStartChatClick: () -> Unit,
+    onBuyClick: (String) -> Unit
 ) {
     val scrollState = rememberScrollState()
     val configuration = LocalConfiguration.current
     val screenHeight = configuration.screenHeightDp.dp
 
-    // ¡NUEVO! Estado para el Dialog de confirmación
     var showDeleteDialog by remember { mutableStateOf(false) }
     val isOwner = currentUserId == product.ownerId
 
-    // DIALOG DE CONFIRMACIÓN DE BORRADO
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
@@ -345,8 +346,7 @@ private fun ProductDetailContent(
                     Text("$${product.price}", fontSize = 18.sp, fontWeight = FontWeight.Bold)
                 }
                 Button(
-                    onClick = { /* Buy */ },
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                    onClick = { onBuyClick(product.id) },                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                     shape = RoundedCornerShape(12.dp), contentPadding = PaddingValues(horizontal = 32.dp, vertical = 12.dp)
                 ) {
                     Text("Buy Now", fontWeight = FontWeight.Bold)

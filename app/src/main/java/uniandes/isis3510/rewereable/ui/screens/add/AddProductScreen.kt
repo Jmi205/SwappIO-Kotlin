@@ -49,6 +49,7 @@ import android.content.pm.PackageManager
 import androidx.core.content.ContextCompat
 import com.google.android.gms.location.LocationServices
 import com.google.maps.android.compose.MapProperties
+import uniandes.isis3510.rewereable.util.CurrencyVisualTransformation
 
 @OptIn(ExperimentalMaterial3Api::class)
 
@@ -161,18 +162,24 @@ fun AddProductScreen(
         }
     }
 
-    //LaunchedEffect(uiState) {
-    //    if (uiState is AddProductUiState.Success) {
-    //        Toast.makeText(context, "¡Producto publicado con éxito!", Toast.LENGTH_LONG).show()
-    //        onSuccess()
-    //    }
-    //}
+    LaunchedEffect(uiState) {
+        if (uiState is AddProductUiState.Success) {
+            Toast.makeText(context, "¡Producto publicado con éxito!", Toast.LENGTH_LONG).show()
+            onSuccess()
+        }
+    }
 
     val glassModifier = Modifier
         .background(GlassBackground, RoundedCornerShape(16.dp))
         .border(1.dp, Color.White.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
 
     Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+
+        val isFormValid = title.isNotBlank() &&
+                price.isNotBlank() &&
+                selectedImages.isNotEmpty() &&
+                selectedLatLng != null
+
         Column(modifier = Modifier.fillMaxSize()) {
 
             // --- Header ---
@@ -292,32 +299,61 @@ fun AddProductScreen(
                 // --- Título ---
                 OutlinedTextField(
                     value = title,
-                    onValueChange = { viewModel.title.value = it },
+                    onValueChange = { if (it.length <= 50) viewModel.title.value = it },
                     label = { Text("Title") },
                     placeholder = { Text("e.g. Vintage Denim Jacket") },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
-                    colors = TextFieldDefaults.colors(unfocusedIndicatorColor = Color.LightGray)
+                    colors = TextFieldDefaults.colors(unfocusedIndicatorColor = Color.LightGray),
+                    supportingText = {
+                        Text(
+                            text = "${title.length} / 50",
+                            modifier = Modifier.fillMaxWidth(),
+                            textAlign = androidx.compose.ui.text.style.TextAlign.End
+                        )
+                    }
                 )
 
                 OutlinedTextField(
                     value = brand,
-                    onValueChange = { viewModel.brand.value = it },
+                    onValueChange = { if (it.length <= 20) viewModel.brand.value = it },
                     label = { Text("Brand (Optional)") },
                     placeholder = { Text("e.g. Levi's, Nike, Zara") },
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp)
+                    shape = RoundedCornerShape(16.dp),
+                    supportingText = {
+                        Text(
+                            text = "${title.length} / 20",
+                            modifier = Modifier.fillMaxWidth(),
+                            textAlign = androidx.compose.ui.text.style.TextAlign.End
+                        )
+                    }
                 )
 
                 // --- Precio ---
                 OutlinedTextField(
                     value = price,
-                    onValueChange = { viewModel.price.value = it },
+                    onValueChange = { newValue ->
+                        val onlyNumbers = newValue.filter { it.isDigit() }
+
+                        if (onlyNumbers.length <= 8) {
+                            viewModel.price.value = onlyNumbers
+                        }
+                    },
                     label = { Text("Price (COP)") },
                     leadingIcon = { Text("$", fontWeight = FontWeight.Bold, color = Color.Gray, modifier = Modifier.padding(start = 16.dp)) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    visualTransformation = CurrencyVisualTransformation(),
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp)
+                    shape = RoundedCornerShape(16.dp),
+                    enabled = uiState !is AddProductUiState.Loading,
+                    supportingText = {
+                        Text(
+                            text = "Max $99.999.999",
+                            modifier = Modifier.fillMaxWidth(),
+                            textAlign = androidx.compose.ui.text.style.TextAlign.End
+                        )
+                    }
                 )
 
                 // --- Grid: Size & Condition ---
@@ -400,12 +436,19 @@ fun AddProductScreen(
                 // --- Descripción ---
                 OutlinedTextField(
                     value = description,
-                    onValueChange = { viewModel.description.value = it },
+                    onValueChange = { if (it.length <= 300) viewModel.description.value = it },
                     label = { Text("Description") },
                     placeholder = { Text("Describe the item's condition, brand...") },
                     modifier = Modifier.fillMaxWidth().height(140.dp),
                     shape = RoundedCornerShape(16.dp),
-                    maxLines = 5
+                    maxLines = 5,
+                    supportingText = {
+                        Text(
+                            text = "${description.length} / 300",
+                            modifier = Modifier.fillMaxWidth(),
+                            textAlign = androidx.compose.ui.text.style.TextAlign.End
+                        )
+                    }
                 )
 
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -418,12 +461,19 @@ fun AddProductScreen(
 
                     OutlinedTextField(
                         value = location,
-                        onValueChange = { viewModel.location.value = it },
+                        onValueChange = { if (it.length <= 50) viewModel.location.value = it },
                         label = { Text("Approximate area") },
                         placeholder = { Text("e.g. Chapinero, Bogotá") },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(16.dp),
-                        singleLine = true
+                        singleLine = true,
+                        supportingText = {
+                            Text(
+                                text = "${description.length} / 50",
+                                modifier = Modifier.fillMaxWidth(),
+                                textAlign = androidx.compose.ui.text.style.TextAlign.End
+                            )
+                        }
                     )
 
                     Box(
@@ -493,8 +543,11 @@ fun AddProductScreen(
                     onClick = { viewModel.submitProduct() },
                     modifier = Modifier.fillMaxWidth().height(56.dp).padding(bottom = 16.dp),
                     shape = RoundedCornerShape(16.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-                    enabled = uiState !is AddProductUiState.Loading
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        disabledContainerColor = Color.Gray.copy(alpha = 0.3f)
+                    ),
+                    enabled =  isFormValid && uiState !is AddProductUiState.Loading,
                 ) {
                     if (uiState is AddProductUiState.Loading) {
                         CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))

@@ -23,7 +23,7 @@ import uniandes.isis3510.rewereable.ui.components.ProductCard
 
 @Composable
 fun UserActivityScreen(
-    title: String, // Recibe el título ("Favorites", "My Listings", etc.)
+    title: String,
     viewModel: UserActivityViewModel,
     onBackClick: () -> Unit,
     onProductClick: (String) -> Unit
