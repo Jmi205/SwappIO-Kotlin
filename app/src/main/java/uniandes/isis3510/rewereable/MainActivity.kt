@@ -15,6 +15,8 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.firestoreSettings
+import com.google.firebase.firestore.persistentCacheSettings
 import uniandes.isis3510.rewereable.domain.repository.AuthRepositoryImpl
 import uniandes.isis3510.rewereable.domain.repository.CharityRepositoryImpl
 import uniandes.isis3510.rewereable.domain.repository.ProductRepositoryImpl
@@ -48,7 +50,6 @@ import uniandes.isis3510.rewereable.ui.screens.chats.ChatListViewModel
 import uniandes.isis3510.rewereable.ui.screens.map.MapDropOffScreen
 import uniandes.isis3510.rewereable.ui.screens.map.MapDropOffViewModel
 import uniandes.isis3510.rewereable.domain.repository.ChatRepositoryImpl
-import uniandes.isis3510.rewereable.domain.repository.CheckoutRepository
 import uniandes.isis3510.rewereable.domain.repository.CheckoutRepositoryImpl
 import uniandes.isis3510.rewereable.ui.screens.chat.ChatDetailScreen
 import uniandes.isis3510.rewereable.ui.screens.chat.ChatDetailViewModel
@@ -60,22 +61,30 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // Firebase Instances
         val auth = FirebaseAuth.getInstance()
+        val firestore = FirebaseFirestore.getInstance()
 
-        val authRepository = AuthRepositoryImpl(auth, FirebaseFirestore.getInstance())
-        val authViewModel = AuthViewModel(authRepository)
+        // Persistent Cache Settings - Firebase
+        val settings = firestoreSettings {
+            setLocalCacheSettings(persistentCacheSettings {})
+        }
+        firestore.firestoreSettings = settings
 
-        val userRepository = UserRepositoryImpl()
-        val productRepository = ProductRepositoryImpl()
-        val homeViewModel = HomeViewModel(productRepository, userRepository)
+        // Repository Instances
+        val authRepository = AuthRepositoryImpl(auth, firestore)
 
-        val charityRepository = CharityRepositoryImpl()
-        val donateViewModel = DonateViewModel(charityRepository)
-        val checkoutRepository = CheckoutRepositoryImpl(FirebaseFirestore.getInstance(), auth)
+        val userRepository = UserRepositoryImpl(firestore)
 
-        val chatRepository = ChatRepositoryImpl()
+        val productRepository = ProductRepositoryImpl(firestore)
 
-        val dropOffRepository = DropOffRepositoryImpl()
+        val charityRepository = CharityRepositoryImpl(firestore)
+
+        val checkoutRepository = CheckoutRepositoryImpl(firestore, auth)
+
+        val chatRepository = ChatRepositoryImpl(firestore)
+
+        val dropOffRepository = DropOffRepositoryImpl(firestore)
 
         setContent {
             SwappIOTheme {
@@ -112,6 +121,13 @@ class MainActivity : ComponentActivity() {
                         modifier = Modifier.padding(innerPadding)
                     ) {
                         composable(Screen.Login.route) {
+
+                            val authViewModel: AuthViewModel = viewModel(
+                                factory = AuthViewModel.provideFactory(
+                                    authRepository
+                                )
+                            )
+
                             LoginScreen(
                                 viewModel = authViewModel,
                                 onNavigateToHome = {
@@ -125,6 +141,14 @@ class MainActivity : ComponentActivity() {
                         }
 
                         composable(Screen.Register.route) {
+
+                            val authViewModel: AuthViewModel = viewModel(
+                                factory = AuthViewModel.provideFactory(
+                                    authRepository
+                                )
+                            )
+
+
                             RegisterScreen(
                                 viewModel = authViewModel,
                                 onNavigateToHome = {
@@ -136,6 +160,14 @@ class MainActivity : ComponentActivity() {
                             )
                         }
                         composable(Screen.Home.route) {
+                            val homeViewModel: HomeViewModel = viewModel(
+                                factory = HomeViewModel.provideFactory(
+                                    productRepository,
+                                    userRepository
+                                )
+                            )
+
+
                             HomeScreen(
                                 viewModel = homeViewModel,
                                 onNavigateToDetails = { productId ->
@@ -169,6 +201,13 @@ class MainActivity : ComponentActivity() {
                         }
 
                         composable(Screen.Donate.route) {
+
+                            val donateViewModel: DonateViewModel = viewModel(
+                                factory = DonateViewModel.provideFactory(
+                                    charityRepository
+                                )
+                            )
+
                             DonateScreen(
                                 viewModel = donateViewModel,
                                 onNavigateToCharityDetails = { charityId ->

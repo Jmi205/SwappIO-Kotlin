@@ -7,9 +7,11 @@ import uniandes.isis3510.rewereable.domain.model.Product
 import uniandes.isis3510.rewereable.domain.model.ProductStatus
 import uniandes.isis3510.rewereable.domain.repository.ProductRepository
 
-class ProductRepositoryImpl : ProductRepository {
+class ProductRepositoryImpl(
+    private val firestore: FirebaseFirestore
 
-    private val firestore = FirebaseFirestore.getInstance()
+) : ProductRepository {
+
 
     override suspend fun getTags(): Result<List<String>> {
         return Result.success(

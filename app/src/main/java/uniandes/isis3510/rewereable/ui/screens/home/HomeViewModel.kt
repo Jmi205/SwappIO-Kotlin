@@ -2,6 +2,7 @@ package uniandes.isis3510.rewereable.ui.screens.home
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -10,8 +11,10 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import uniandes.isis3510.rewereable.domain.model.Product
 import uniandes.isis3510.rewereable.domain.model.User
+import uniandes.isis3510.rewereable.domain.repository.ChatRepository
 import uniandes.isis3510.rewereable.domain.repository.ProductRepository
 import uniandes.isis3510.rewereable.domain.repository.UserRepository
+import uniandes.isis3510.rewereable.ui.screens.product.ProductDetailViewModel
 
 sealed class HomeUiState {
     object Loading : HomeUiState()
@@ -155,6 +158,18 @@ class HomeViewModel(
                     userRepository.addToFavorites(userId, productId)
                 }
                 _uiState.value = currentState.copy(favoriteIds = currentFavs)
+            }
+        }
+    }
+
+    companion object {
+        fun provideFactory(
+            productRepository: ProductRepository,
+            userRepository: UserRepository,
+        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
+            @Suppress("UNCHECKED_CAST")
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return HomeViewModel(productRepository, userRepository) as T
             }
         }
     }

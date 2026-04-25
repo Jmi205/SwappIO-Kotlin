@@ -12,9 +12,10 @@ import uniandes.isis3510.rewereable.domain.model.ChatChannel
 import uniandes.isis3510.rewereable.domain.model.Message
 import java.util.UUID
 
-class ChatRepositoryImpl : ChatRepository {
+class ChatRepositoryImpl(
+    private val firestore: FirebaseFirestore
+) : ChatRepository {
 
-    private val firestore = FirebaseFirestore.getInstance()
     private val chatsCollection = firestore.collection("chats")
 
     override fun getUserChats(userId: String): Flow<List<ChatChannel>> = callbackFlow {
