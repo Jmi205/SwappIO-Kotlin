@@ -23,10 +23,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import uniandes.isis3510.rewereable.ui.components.GlassTextField
 import uniandes.isis3510.rewereable.util.AnalyticsHelper
-
+import uniandes.isis3510.rewereable.util.connectivity.NetworkStatus
 @Composable
 fun RegisterScreen(
     viewModel: AuthViewModel,
+    networkStatus: NetworkStatus,
     onNavigateToHome: () -> Unit,
     onNavigateToLogin: () -> Unit
 ) {
@@ -40,6 +41,7 @@ fun RegisterScreen(
     var lastname by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    val isOffline = networkStatus == NetworkStatus.Unavailable
 
     // Escucha el estado para navegar automáticamente cuando el registro sea exitoso
     LaunchedEffect(uiState) {
@@ -105,13 +107,24 @@ fun RegisterScreen(
             }
 
             Spacer(modifier = Modifier.height(24.dp))
+            if (isOffline) {
+                Text(
+                    text = "Sign up is unavailable without internet connection.",
+                    color = Color.Red,
+                    fontSize = 12.sp,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+            }
 
             Button(
                 onClick = { viewModel.register(email, password, name, lastname) },
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF077288)),
                 shape = RoundedCornerShape(16.dp),
                 modifier = Modifier.fillMaxWidth().height(50.dp),
-                enabled = uiState !is AuthUiState.Loading && email.isNotBlank() && password.length >= 6
+                enabled = uiState !is AuthUiState.Loading &&
+                        email.isNotBlank() &&
+                        password.length >= 6 &&
+                        !isOffline
             ) {
                 if (uiState is AuthUiState.Loading) {
                     CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))

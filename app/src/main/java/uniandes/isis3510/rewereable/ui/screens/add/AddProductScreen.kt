@@ -50,7 +50,7 @@ import androidx.core.content.ContextCompat
 import com.google.android.gms.location.LocationServices
 import com.google.maps.android.compose.MapProperties
 import uniandes.isis3510.rewereable.util.CurrencyVisualTransformation
-
+import uniandes.isis3510.rewereable.util.connectivity.NetworkStatus
 @OptIn(ExperimentalMaterial3Api::class)
 
 private fun createImageUri(context: Context): Uri {
@@ -68,6 +68,7 @@ private fun createImageUri(context: Context): Uri {
 @Composable
 fun AddProductScreen(
     viewModel: AddProductViewModel,
+    networkStatus: NetworkStatus,
     onBackClick: () -> Unit,
     onSuccess: () -> Unit
 ) {
@@ -88,6 +89,7 @@ fun AddProductScreen(
     val selectedLatLng by viewModel.selectedLatLng.collectAsState()
 
     val styleTags by viewModel.styleTags.collectAsState()
+    val isOffline = networkStatus == NetworkStatus.Unavailable
 
 
     val bogotaCenter = LatLng(4.6097, -74.0817)
@@ -538,6 +540,17 @@ fun AddProductScreen(
                     Text("Use my location")
                 }
 
+
+                if (isOffline) {
+                    Text(
+                        text = "You need an internet connection to publish an item.",
+                        color = Color.Red,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(start = 4.dp)
+                    )
+                }
+
                 // Botón de Enviar
                 Button(
                     onClick = { viewModel.submitProduct() },
@@ -547,7 +560,7 @@ fun AddProductScreen(
                         containerColor = MaterialTheme.colorScheme.primary,
                         disabledContainerColor = Color.Gray.copy(alpha = 0.3f)
                     ),
-                    enabled =  isFormValid && uiState !is AddProductUiState.Loading,
+                    enabled = isFormValid && uiState !is AddProductUiState.Loading && !isOffline,
                 ) {
                     if (uiState is AddProductUiState.Loading) {
                         CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))

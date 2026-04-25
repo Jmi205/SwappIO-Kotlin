@@ -55,6 +55,13 @@ import uniandes.isis3510.rewereable.ui.screens.chat.ChatDetailScreen
 import uniandes.isis3510.rewereable.ui.screens.chat.ChatDetailViewModel
 import uniandes.isis3510.rewereable.ui.screens.checkout.CheckoutScreen
 import uniandes.isis3510.rewereable.ui.screens.checkout.CheckoutViewModel
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
+import uniandes.isis3510.rewereable.util.connectivity.AndroidConnectivityObserver
+import uniandes.isis3510.rewereable.util.connectivity.NetworkStatus
+import uniandes.isis3510.rewereable.ui.components.ConnectivityBanner
 
 
 class MainActivity : ComponentActivity() {
@@ -90,6 +97,13 @@ class MainActivity : ComponentActivity() {
             SwappIOTheme {
                 val navController = rememberNavController()
 
+                val connectivityObserver = remember {
+                    AndroidConnectivityObserver(applicationContext)
+                }
+
+                val networkStatus by connectivityObserver.observe()
+                    .collectAsState(initial = NetworkStatus.Available)
+
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val currentRoute = navBackStackEntry?.destination?.route
 
@@ -115,11 +129,18 @@ class MainActivity : ComponentActivity() {
                     }
                 ) { innerPadding ->
 
-                    NavHost(
-                        navController = navController,
-                        startDestination = startDestination,
-                        modifier = Modifier.padding(innerPadding)
+                    Column(
+                        modifier = Modifier
+                            .padding(innerPadding)
+                            .fillMaxSize()
                     ) {
+                        ConnectivityBanner(networkStatus = networkStatus)
+
+                        NavHost(
+                            navController = navController,
+                            startDestination = startDestination,
+                            modifier = Modifier.weight(1f)
+                        ) {
                         composable(Screen.Login.route) {
 
                             val authViewModel: AuthViewModel = viewModel(
@@ -130,6 +151,7 @@ class MainActivity : ComponentActivity() {
 
                             LoginScreen(
                                 viewModel = authViewModel,
+                                networkStatus = networkStatus,
                                 onNavigateToHome = {
 
                                     navController.navigate(Screen.Home.route) {
@@ -151,6 +173,7 @@ class MainActivity : ComponentActivity() {
 
                             RegisterScreen(
                                 viewModel = authViewModel,
+                                networkStatus = networkStatus,
                                 onNavigateToHome = {
                                     navController.navigate(Screen.Home.route) {
                                         popUpTo("login") { inclusive = true }
@@ -457,6 +480,7 @@ class MainActivity : ComponentActivity() {
 
                             AddProductScreen(
                                 viewModel = addProductViewModel,
+                                networkStatus = networkStatus,
                                 onBackClick = { navController.popBackStack() },
                                 onSuccess = {
                                     navController.navigate(Screen.Listings.route) {
@@ -494,4 +518,5 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+}
 }
