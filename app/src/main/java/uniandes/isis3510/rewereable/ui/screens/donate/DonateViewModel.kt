@@ -1,6 +1,7 @@
 package uniandes.isis3510.rewereable.ui.screens.donate
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -182,6 +183,18 @@ class DonateViewModel(
                         charity.tags.any { it.equals(selectedCategory, ignoreCase = true) }
 
             matchesSearch && matchesCategory
+        }
+    }
+
+    companion object {
+        fun provideFactory(
+            charityRepository: CharityRepository
+
+        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
+            @Suppress("UNCHECKED_CAST")
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return DonateViewModel(charityRepository) as T
+            }
         }
     }
 }

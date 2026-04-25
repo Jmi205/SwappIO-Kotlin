@@ -138,17 +138,6 @@ fun CheckoutScreen(
                     enabled = uiState !is CheckoutUiState.Loading
                 )
 
-                OutlinedTextField(
-                    value = document,
-                    onValueChange = { if (it.filter { char -> char.isDigit() }.length <= 11) viewModel.document.value = it.filter { char -> char.isDigit() } },
-                    label = { Text("ID Document (CC/CE)") },
-                    leadingIcon = { Icon(Icons.Default.Badge, contentDescription = null) },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
-                    enabled = uiState !is CheckoutUiState.Loading
-                )
-
                 Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                     OutlinedTextField(
                         value = expiryDate,
@@ -172,7 +161,18 @@ fun CheckoutScreen(
                     )
                 }
 
-                Spacer(modifier = Modifier.height(24.dp)) // Espacio extra para el scroll
+                OutlinedTextField(
+                    value = document,
+                    onValueChange = { if (it.filter { char -> char.isDigit() }.length <= 11) viewModel.document.value = it.filter { char -> char.isDigit() } },
+                    label = { Text("ID Document (CC/CE)") },
+                    leadingIcon = { Icon(Icons.Default.Badge, contentDescription = null) },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    enabled = uiState !is CheckoutUiState.Loading
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
             }
 
             // --- Sticky Pay Button ---

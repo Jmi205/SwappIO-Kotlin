@@ -11,7 +11,7 @@ import kotlin.math.sqrt
 import uniandes.isis3510.rewereable.domain.model.DropOffPoint
 
 class DropOffRepositoryImpl(
-    private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()
+    private val firestore: FirebaseFirestore
 ) : DropOffRepository {
 
     private val dropOffPointsCollection = firestore.collection("dropoff_points")

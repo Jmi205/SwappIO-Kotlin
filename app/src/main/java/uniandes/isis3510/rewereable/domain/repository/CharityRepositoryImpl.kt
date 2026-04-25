@@ -6,7 +6,7 @@ import kotlinx.coroutines.tasks.await
 import uniandes.isis3510.rewereable.domain.model.Charity
 
 class CharityRepositoryImpl(
-    private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()
+    private val firestore: FirebaseFirestore
 ) : CharityRepository {
 
     private val charitiesCollection = firestore.collection("charities")

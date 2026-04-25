@@ -21,10 +21,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import uniandes.isis3510.rewereable.ui.components.GlassTextField
 import uniandes.isis3510.rewereable.util.AnalyticsHelper
-
+import uniandes.isis3510.rewereable.util.connectivity.NetworkStatus
 @Composable
 fun LoginScreen(
     viewModel: AuthViewModel,
+    networkStatus: NetworkStatus,
     onNavigateToHome: () -> Unit,
     onNavigateToRegister: () -> Unit
 ) {
@@ -36,6 +37,7 @@ fun LoginScreen(
 
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    val isOffline = networkStatus == NetworkStatus.Unavailable
 
     // Escucha el estado para navegar automáticamente cuando el login sea exitoso
     LaunchedEffect(uiState) {
@@ -97,12 +99,21 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
+            if (isOffline) {
+                Text(
+                    text = "Login is unavailable without internet connection.",
+                    color = Color.Red,
+                    fontSize = 12.sp,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+            }
+
             Button(
                 onClick = { viewModel.login(email, password) },
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                 shape = RoundedCornerShape(16.dp),
                 modifier = Modifier.fillMaxWidth().height(50.dp),
-                enabled = uiState !is AuthUiState.Loading
+                enabled = uiState !is AuthUiState.Loading && !isOffline
             ) {
                 if (uiState is AuthUiState.Loading) {
                     CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))

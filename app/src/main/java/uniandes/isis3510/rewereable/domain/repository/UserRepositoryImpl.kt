@@ -8,9 +8,10 @@ import uniandes.isis3510.rewereable.domain.repository.UserRepository
 import uniandes.isis3510.rewereable.domain.model.User
 
 
-class UserRepositoryImpl : UserRepository {
+class UserRepositoryImpl(
+    private val firestore: FirebaseFirestore
+) : UserRepository {
 
-    private val firestore = FirebaseFirestore.getInstance()
 
     override suspend fun getUserProfile(userId: String): Result<User> {
         return try {

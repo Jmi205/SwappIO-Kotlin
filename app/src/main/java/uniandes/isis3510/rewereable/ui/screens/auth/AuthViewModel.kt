@@ -1,6 +1,7 @@
 package uniandes.isis3510.rewereable.ui.screens.auth
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -45,5 +46,15 @@ class AuthViewModel(
             )
         }
     }
-    //Factory?
+
+    companion object {
+        fun provideFactory(
+            authRepository: AuthRepository,
+        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
+            @Suppress("UNCHECKED_CAST")
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return AuthViewModel(authRepository) as T
+            }
+        }
+    }
 }
